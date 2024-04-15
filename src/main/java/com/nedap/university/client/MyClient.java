@@ -1,20 +1,27 @@
 package com.nedap.university.client;
 
+import com.nedap.university.Requests;
 import com.nedap.university.util.PacketConstructor;
 import com.nedap.university.util.PacketParser;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import com.nedap.university.Exceptions.IncorrectArgumentException;
+import com.nedap.university.exceptions.IncorrectArgumentException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class MyClient {
 
   PacketParser packetParser;
   PacketConstructor packetConstructor;
   InetAddress address;
+  int wellKnownPort;
   DatagramSocket socket;
 
   public MyClient(String[] args)
@@ -24,50 +31,99 @@ public class MyClient {
     }
 
     String hostName = args[0];
-    int port = Integer.parseInt(args[1]);
+    wellKnownPort = Integer.parseInt(args[1]);
     address = InetAddress.getByName(hostName);
-    System.out.println(hostName + ":" + port);
-    socket = new DatagramSocket(port);
+    System.out.println(hostName + ":" + wellKnownPort);
+    socket = new DatagramSocket();
+
+    try {
+      if(testConnection()) {
+        System.out.println("Successfully connected to " + hostName + ":" + wellKnownPort);
+      } else {
+        System.out.println("Expected an exception, guess not?");
+      }
+    } catch (IOException e) {
+      System.out.println("Failed to connect to " + hostName + ":" + wellKnownPort);
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      System.out.println("Timeout failed");
+    }
+
     packetParser = new PacketParser();
     packetConstructor = new PacketConstructor();
   }
 
-  public void executeCommand(String[] command) {
-
-    switch (command[0].toUpperCase()) {
-      case "LIST" : getList();
-      case "UPLOAD" : upload(command[1]);
-      case "DOWNLOAD" : download(command[1]);
-      case "REMOVE" : remove(command[1]);
-      case "RENAME" : rename(command[1]);
-      default: {
-        System.out.println("Unknown command: " + command[0]);
+  public void executeCommand(String[] command) throws IncorrectArgumentException, IOException {
+    if (command.length > 1 || command[0].equals(Requests.LIST.name())) {
+      switch (command[0].toUpperCase()) {
+        case "LIST" -> getList();
+        case "UPLOAD" ->  upload(command[1]);
+        case "DOWNLOAD" -> download(command[1]);
+        case "REMOVE" -> remove(command[1]);
+        case "RENAME" -> rename(command[1]);
+        default->
+            System.out.println("Unknown command: " + command[0]);
       }
+    } else {
+      throw new IncorrectArgumentException("Incorrect arguments: <Command> <filename>\n "
+          + "Provided arguments are: " + Arrays.toString(command));
     }
-
   }
 
   private void getList() {
+    System.out.println("Retrieving list from server");
 
   }
 
+  private void upload(String filePath) throws IOException {
+    System.out.println("Uploading file: " + filePath + " to server");
+    //byte[] data = loadFile(filePath);
+    byte[] data = loadFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny.pdf");
+    System.out.println("Sending datagramPacket");
+    socket.send(new DatagramPacket(data, data.length, address, wellKnownPort));
 
-  private void upload(String filePath) {}
+    byte[] buffer = new byte[1024];
+    DatagramPacket response = new DatagramPacket(buffer, buffer.length);
+    socket.receive(response);
+    String quote = new String(buffer, 0, response.getLength());
+
+    System.out.println(quote);
+    System.out.println();
+
+  }
 
   private void download(String filePath) {
+    System.out.println("Downloading file: " + filePath + " from server");
     // Construct the header
     DatagramPacket packet = new DatagramPacket(new byte[1024], 1024);
     // add the file path as the data
   }
 
   private void remove(String filePath) {
+    System.out.println("Removing file: " + filePath + " from server");
   }
 
-  private void rename(String filePath) {}
-//  private byte[] loadFile(String filename) {
-//
-//  }
+  private void rename(String filePath) {
+    System.out.println("Renaming file: " + filePath + " on server");
+  }
 
+  private byte[] loadFile(String filepath) throws IOException {
+    Path path = Paths.get(filepath);
+    byte[] data = Files.readAllBytes(path);
+    System.out.println(data.length + "bytes loaded from file");
+    return data;
+  }
+
+  private boolean testConnection() throws IOException, InterruptedException {
+    DatagramPacket packet = new DatagramPacket(new byte[1], 1, address, wellKnownPort);
+    System.out.println("Sending data gram");
+    socket.send(packet);
+    Thread.sleep(500);
+    byte[] response = new byte[512];
+    DatagramPacket responsePacket = new DatagramPacket(response, response.length);
+    socket.receive(responsePacket);
+    return responsePacket.getLength() > 0;
+  }
 
 
 }

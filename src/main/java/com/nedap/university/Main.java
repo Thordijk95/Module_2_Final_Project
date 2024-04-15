@@ -2,17 +2,20 @@ package com.nedap.university;
 
 
 import com.nedap.university.client.MyClientTUI;
-import com.nedap.university.server.QuoteServer;
+import com.nedap.university.server.PiFileServer;
 
 public class Main {
 
     private static boolean keepAlive = true;
     private static boolean running = false;
 
-    static final int portNumber = 8080;
+    static final int PORTNUMBER = 8080;
     static final String hostName = "RaspberryPI";
 
-    int headerSize = 10;
+    static final int HEADERSIZE = 10;
+    static final int DATAGRAMSIZE = 1024 - HEADERSIZE;
+
+
 
     private Main() {}
 
@@ -20,9 +23,9 @@ public class Main {
         if (args.length == 0) {  // Start a server
             running = true;
             System.out.println("Hello, Nedap University!");
-            System.out.println("Starting qoute server at port 8080");
-            QuoteServer.main(new String[]{"/home/pi/Quote/Quotes.txt", "8080"});
-
+            //System.out.println("Starting qoute server at port 8080");
+            //QuoteServer.main(new String[]{"/home/pi/Quote/Quotes.txt", "8080"});
+            PiFileServer.main(new Integer[]{PORTNUMBER, HEADERSIZE, DATAGRAMSIZE});
             initShutdownHook();
 
             while (keepAlive) {

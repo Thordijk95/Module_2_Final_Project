@@ -10,7 +10,7 @@ import java.util.*;
  *
  * @author www.codejava.net
  */
-public class    QuoteServer {
+public class QuoteServer {
     private DatagramSocket socket;
     private List<String> listQuotes = new ArrayList<String>();
     private Random random;

@@ -1,4 +1,4 @@
-package com.nedap.university.Exceptions;
+package com.nedap.university.exceptions;
 
 public class IncorrectArgumentException extends Exception {
   public IncorrectArgumentException(String message) {

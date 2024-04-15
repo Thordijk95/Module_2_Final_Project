@@ -6,6 +6,7 @@ public enum Requests {
   DOWNLOAD(3), // Download a file
   REMOVE(4),
   RENAME(5),
+  CONNECT(9),
   EXIT(10),
   EMPTY(0);
 

@@ -1,10 +1,12 @@
 package com.nedap.university.server;
 
+import com.nedap.university.util.PacketParser;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -15,22 +17,26 @@ public class PiFileServer {
 
   static String storageDirectory = "/home/pi/PiFileServerStorageDirectory";
 
-  int headerSize;
+  static int headerSize;
+  static int datagramSize;
 
-  public PiFileServer(int port, int headersize) throws SocketException {
+  PacketParser packetParser;
+
+  public PiFileServer(int port, int headersize, int datagramsize) throws SocketException {
       socket = new DatagramSocket(port);
-      this.headerSize = headersize;
+      headerSize = headersize;
+      datagramSize = datagramsize;
+      packetParser = new PacketParser();
   }
 
-  public static void main(String[] args) {
-    if (args.length < 1) {
-      System.out.println("Syntax error: PiFileServer <port>");
+  public static void main(Integer[] args) {
+    if (args.length < 3) {
+      System.out.println("Syntax error: PiFileServer <port>, <headersize> <datagramsize>");
     }
 
-    int port = Integer.parseInt(args[0]);
     try {
-      PiFileServer server = new PiFileServer(port, 10);
-      System.out.println("Started the Raspberry Pi File Server on port " + port);
+      PiFileServer server = new PiFileServer(args[0], args[1], args[2]);
+      System.out.println("Started the Raspberry Pi File Server on port " + args[0]);
       server.service();
     } catch (SocketException e) {
       System.out.println("Socket unavailable");
@@ -46,6 +52,7 @@ public class PiFileServer {
     System.out.println("Starting the Raspberry Pi File Server Service");
     while(true) {
       DatagramPacket request = new DatagramPacket(new byte[1024], 1024);
+      System.out.println("Created a file buffer! Now trying to receive request");
       socket.receive(request);
       System.out.println("Received a request on the Raspberry Pi File Server");
       parseRequest(request);
@@ -55,8 +62,16 @@ public class PiFileServer {
   }
 
   private Integer[] parseRequest(DatagramPacket request) throws IOException {
-
-    byte[] header = request.getData();
+    byte[] data = request.getData();
+    System.out.println(Arrays.toString(data));
+    if (packetParser.evaluateChecksum(data, headerSize)) {
+      System.out.println("Checksum is correct!");
+    } else {
+      System.out.println(data.length + " bytes received");
+      System.out.println("Sending a response packet for the connection request");
+      socket.send(new DatagramPacket(data, request.getLength(), request.getAddress(), request.getPort()));
+      System.out.println("Checksum is incorrect!");
+    }
 
     return new Integer[] {};
   }

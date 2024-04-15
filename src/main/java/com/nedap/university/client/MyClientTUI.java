@@ -1,8 +1,8 @@
 package com.nedap.university.client;
 
-import com.nedap.university.Exceptions.IncorrectArgumentException;
+import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.Requests;
-import java.net.InetAddress;
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
@@ -23,23 +23,34 @@ public class MyClientTUI {
         System.out.println(
             "Please provide the address/hostname where to connect to the file server:");
         String hostName = input.nextLine();
+        hostName = "172.16.1.1";
+        System.out.println("Provide the well known port of the server:");
         String port = input.nextLine();
+        port = "8080";
         myClient = new MyClient(new String[] {hostName, port});
         help();
         // Start taking in commands from the user and passing them on to the server
         while(true) {
+          System.out.println("Provide command line arguments:");
           String command = input.nextLine();
           String[] args = command.split(" ");
-          if (args[0].equals(Requests.EXIT.name().toLowerCase())) {
+          if (args[0].toUpperCase().equals(Requests.EXIT.name())) {
             System.out.println("Stopping the client!");
             break;
-          } else if (!Requests.validRequest(args[0])) {
-            myClient.executeCommand(args);
+          } else if (Requests.validRequest(args[0].toUpperCase())) {
+            try {
+              myClient.executeCommand(args);
+            } catch (IncorrectArgumentException ignored) {
+            } catch (IOException e) {
+              System.out.println("The provided filepath is incorrect");
+              e.printStackTrace();
+            }
+          } else if (args[0].toLowerCase().equals("help")) {
+            help();
           } else {
-            System.out.println("Invalid request type");
+            System.out.println("Invalid request");
             help();
           }
-
         }
         break;
       } catch (UnknownHostException e) {
@@ -47,14 +58,11 @@ public class MyClientTUI {
       } catch (SocketException e) {
         System.out.println("Unable to establish a socket");
       } catch (IncorrectArgumentException e) {
-        System.out.println(e.getMessage());
+        System.out.println("Incorrect arguments: " + e.getMessage());
       }
       System.out.println(maxTries-i-1 + " tries remaining");
     }
-
-
   }
-
 
   public static void help() {
     StringBuilder builder = new StringBuilder();
@@ -64,7 +72,7 @@ public class MyClientTUI {
     builder.append("UPLOAD <filepath> - Upload a file to the server\n");
     builder.append("DOWNLOAD <filepath> - Download a file from the server\n");
     builder.append("REMOVE <filepath> - Download a file from the server\n");
-    builder.append("RENAME <filepath> - Rename a file from the server\n");
+    builder.append("RENAME <current filepath> <new filepath> - Rename a file from the server\n");
     builder.append("EXIT - to Exit the server\n");
     System.out.println(builder);
   }
