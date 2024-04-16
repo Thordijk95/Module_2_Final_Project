@@ -1,25 +1,21 @@
 package com.nedap.university.client;
 
-import com.nedap.university.Requests;
-import com.nedap.university.util.CommandHandler;
+import com.nedap.university.util.CommandHandler.ClientCommandHandler;
+import com.nedap.university.util.CommandHandler.CommandHandler;
 import com.nedap.university.util.PacketConstructor;
 import com.nedap.university.util.PacketParser;
 import com.nedap.university.util.Util;
-import com.nedap.university.util.DatagramProperties;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import com.nedap.university.exceptions.IncorrectArgumentException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MyClient {
 
-  CommandHandler commandHandler;
+  CommandHandler clientCommandHandler;
   PacketParser packetParser;
   PacketConstructor packetConstructor;
   Util util;
@@ -27,9 +23,6 @@ public class MyClient {
   InetAddress SERVERADDRESS;
   InetAddress CLIENTADDRESS;
   int WELLKNOWNPORT;
-
-  int HEADERSIZE;
-  int DATASIZE;
 
   public MyClient(String[] args)
       throws SocketException, UnknownHostException, IncorrectArgumentException {
@@ -47,10 +40,10 @@ public class MyClient {
     packetParser = new PacketParser();
     packetConstructor = new PacketConstructor();
     util = new Util();
-    commandHandler = new CommandHandler(socket);
+    clientCommandHandler = new ClientCommandHandler(socket);
 
     try {
-      if(commandHandler.testConnectionAtRunTime(SERVERADDRESS, WELLKNOWNPORT)) {
+      if(clientCommandHandler.testConnectionAtRunTime(SERVERADDRESS, WELLKNOWNPORT)) {
         System.out.println("Successfully connected to " + hostName + ":" + WELLKNOWNPORT);
       } else {
         System.out.println("Expected an exception, guess not?");

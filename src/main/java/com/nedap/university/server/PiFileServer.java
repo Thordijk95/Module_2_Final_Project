@@ -1,6 +1,8 @@
 package com.nedap.university.server;
 
+import com.nedap.university.util.CommandHandler.CommandHandler;
 import com.nedap.university.util.PacketParser;
+import com.nedap.university.util.CommandHandler.ServerCommandHandler;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -20,6 +22,8 @@ public class PiFileServer {
   static int headerSize;
   static int datagramSize;
 
+  CommandHandler serverCommandHandler;
+
   PacketParser packetParser;
 
   public PiFileServer(int port, int headersize, int datagramsize) throws SocketException {
@@ -27,6 +31,7 @@ public class PiFileServer {
       headerSize = headersize;
       datagramSize = datagramsize;
       packetParser = new PacketParser();
+      serverCommandHandler = new ServerCommandHandler(socket);
   }
 
   public static void main(Integer[] args) {
