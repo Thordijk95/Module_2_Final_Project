@@ -12,9 +12,6 @@ import java.util.ArrayList;
 
 public class ClientCommandHandler extends abstractCommandHandler{
 
-  DatagramSocket socket;
-  Util util;
-
   public ClientCommandHandler(DatagramSocket socket){
     super(socket);
   }
@@ -25,16 +22,18 @@ public class ClientCommandHandler extends abstractCommandHandler{
   }
 
   @Override
-  public void upload(String filePath, String hostname, int port) throws IOException {
+  public void upload(String filePath, InetAddress hostname, int port, byte[] ignored_data) throws IOException {
+    // TODO remove static file path
+    filePath = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny.pdf";
     System.out.println("Uploading file: " + filePath + " to server");
-    //byte[] data = loadFile(filePath);
     byte[] data = util.loadFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny.pdf");
     ArrayList<byte[]> dataList = util.splitData(data, DatagramProperties.DATASIZE);
     int packetCount = dataList.size();
     int packetCounter = 0;
+    String filename = filePath.split("/")[filePath.split("/").length - 1];
     for (byte[] dataPacket : dataList) {
-      Packet newPacket = new Packet(Requests.UPLOAD, false, packetCounter, dataPacket);
-      DatagramPacket newDatagramPacket = new DatagramPacket(newPacket.getData(), newPacket.getData().length, InetAddress.getByName(hostname), port);
+      Packet newPacket = new Packet(Requests.UPLOAD, false, packetCounter, filename, dataPacket);
+      DatagramPacket newDatagramPacket = new DatagramPacket(newPacket.getData(), newPacket.getData().length, hostname, port);
       System.out.println("Sending packet " + (packetCounter+1) + ": " + packetCount);
       socket.send(newDatagramPacket);
       packetCounter++;
@@ -42,10 +41,15 @@ public class ClientCommandHandler extends abstractCommandHandler{
       byte[] buffer = new byte[1024];
       DatagramPacket response = new DatagramPacket(buffer, buffer.length);
       socket.receive(response);
-      String quote = new String(buffer, 0, response.getLength());
-
-      System.out.println(quote);
-      System.out.println();
+      Packet inboundPacket = new Packet(response.getData());
+      if (inboundPacket.acknowledgement && inboundPacket.sequenceNumber==newPacket.sequenceNumber) {
+        System.out.println("Succesfully acknowledged a packet");
+      } else {
+        System.out.println("fail!");
+        System.out.println("acknowledgement: " + inboundPacket.acknowledgement);
+        System.out.println("Last packet send sequence number: " + newPacket.sequenceNumber);
+        System.out.println("Last packet received sequence number: " + inboundPacket.sequenceNumber);
+      }
     }
   }
   @Override
@@ -70,7 +74,7 @@ public class ClientCommandHandler extends abstractCommandHandler{
   public boolean testConnectionAtRunTime(InetAddress hostname, int port) throws IOException, InterruptedException {
     DatagramPacket packet = new DatagramPacket(new byte[1], 1, hostname, port);
     System.out.println("Sending data gram");
-    socket.send(packet);
+    super.socket.send(packet);
     Thread.sleep(500);
     byte[] response = new byte[512];
     DatagramPacket responsePacket = new DatagramPacket(response, response.length);

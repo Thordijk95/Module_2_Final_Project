@@ -16,8 +16,9 @@ public class ServerCommandHandler extends abstractCommandHandler{
   }
 
   @Override
-  public void upload(String filePath, String hostname, int port) throws IOException {
-
+  public void upload(String filePath, InetAddress hostname, int port, byte[] data) throws IOException {
+    System.out.println("Saving inbound data on the server");
+    util.safeFile(filePath, data);
   }
 
   @Override

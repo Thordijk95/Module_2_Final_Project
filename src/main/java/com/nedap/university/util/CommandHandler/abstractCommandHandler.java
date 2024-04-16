@@ -5,6 +5,7 @@ import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.util.Util;
 import java.io.IOException;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.Arrays;
 
 public abstract class abstractCommandHandler implements CommandHandler {
@@ -18,14 +19,15 @@ public abstract class abstractCommandHandler implements CommandHandler {
   }
 
   @Override
-  public void executeCommand(String[] command, String hostname, int port) throws IncorrectArgumentException, IOException {
+  public void executeCommand(String[] command, InetAddress hostname, int port, byte[] data) throws IncorrectArgumentException, IOException {
     if (command.length > 1 || command[0].equals(Requests.LIST.name())) {
       switch (command[0].toUpperCase()) {
         case "LIST" -> getList();
-        case "UPLOAD" ->  upload(command[1], hostname, port);
+        case "UPLOAD" ->  upload(command[1], hostname, port, data);
         case "DOWNLOAD" -> download(command[1]);
         case "REMOVE" -> remove(command[1]);
         case "RENAME" -> rename(command[1]);
+        case "EMPTY" -> {}
         default->
             System.out.println("Unknown command: " + command[0]);
       }

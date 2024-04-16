@@ -6,11 +6,11 @@ import java.net.InetAddress;
 
 public interface CommandHandler {
 
-  void executeCommand(String[] command, String hostname, int port) throws IncorrectArgumentException, IOException;
+  void executeCommand(String[] command, InetAddress hostname, int port, byte[] data) throws IncorrectArgumentException, IOException;
 
   void getList();
 
-  void upload(String filePath, String hostname, int port) throws IOException;
+  void upload(String filePath, InetAddress hostname, int port, byte[] data) throws IOException;
 
   void download(String filePath);
 

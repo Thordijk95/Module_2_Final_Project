@@ -3,6 +3,7 @@ package com.nedap.university.client;
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.Requests;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
@@ -39,7 +40,7 @@ public class MyClientTUI {
             break;
           } else if (Requests.validRequest(args[0].toUpperCase())) {
             try {
-              myClient.clientCommandHandler.executeCommand(args, hostname, Integer.parseInt(port));
+              myClient.clientCommandHandler.executeCommand(args, InetAddress.getByName(hostname), Integer.parseInt(port), null);
             } catch (IncorrectArgumentException ignored) {
             } catch (IOException e) {
               System.out.println("The provided filepath is incorrect");

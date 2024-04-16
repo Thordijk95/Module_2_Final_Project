@@ -1,5 +1,7 @@
 package com.nedap.university;
 
+import com.nedap.university.exceptions.InvalidRequestValue;
+
 public enum Requests {
   LIST(1), // List all the files on the server
   UPLOAD(2), // Indicate the start of an upload
@@ -18,6 +20,15 @@ public enum Requests {
 
   public int getValue() {
     return this.value;
+  }
+
+  public static Requests byValue(int value) throws InvalidRequestValue {
+    for(Requests request : Requests.values()) {
+      if(request.getValue() == value) {
+        return request;
+      }
+    }
+    throw new InvalidRequestValue("The value " + value + " is not a valid request");
   }
 
   public static boolean validRequest(String request) {
