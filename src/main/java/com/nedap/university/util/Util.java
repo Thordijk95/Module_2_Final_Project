@@ -1,0 +1,32 @@
+package com.nedap.university.util;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+
+public class Util {
+
+  public Util(){}
+
+  public ArrayList<byte[]> splitData(byte[] data, int dataSize) {
+
+    ArrayList<byte[]> dataList = new ArrayList<>();
+    int dataPointer = 0;
+    while (dataPointer < data.length) {
+      byte[] tmpData = new byte[Math.min(data.length-dataPointer, dataSize)];
+      System.arraycopy(data, dataPointer, tmpData, 0, Math.min(data.length-dataPointer, dataSize));
+      dataList.add(tmpData);
+      dataPointer += Math.min(data.length-dataPointer, dataSize);
+    }
+    return dataList;
+  }
+
+  public byte[] loadFile(String filepath) throws IOException {
+    Path path = Paths.get(filepath);
+    byte[] data = Files.readAllBytes(path);
+    System.out.println(data.length + " bytes loaded from file");
+    return data;
+  }
+}

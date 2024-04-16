@@ -2,6 +2,8 @@ package com.nedap.university.util;
 
 import java.util.Arrays;
 
+// Deprecated
+
 public class PacketParser {
 
   Conversions conversions;
@@ -22,20 +24,27 @@ public class PacketParser {
   }
 
   public boolean evaluateChecksum(byte[] packet, int headerSize) {
+    System.out.println("Evaluating checksum!");
     ChecksumCalculator checksumCalculator = new ChecksumCalculator();
 
     byte[] header = splitHeader(packet, headerSize);
     int sourcePort = getSourcePort(header);
+    System.out.println("SourcePort:" + sourcePort);
     int destinationPort = getDestinationPort(header);
+    System.out.println("DestinationPort: " + destinationPort);
     int fieldLength = getFieldLength(header);
+    System.out.println("FieldLength " + fieldLength);
     int requestType = getRequestType(header);
+    System.out.println("RequestType: " + requestType);
     boolean acknowledgement = getAcknowledgement(header);
+    System.out.println("Acknowledgement: " + acknowledgement);
     int sequenceNumber = getSequenceNumber(header);
+    System.out.println("SequenceNumber: " + sequenceNumber);
 
     int infoField = conversions.infoField(requestType, acknowledgement, sequenceNumber);
-
+    System.out.println("InfoField: " + infoField);
     int checksum = getChecksum(header);
-
+    System.out.println("Checksum: " + checksum);
     int calculatedChecksum = checksumCalculator.checksumCalculator(sourcePort, destinationPort, fieldLength, infoField);
     return checksum == calculatedChecksum;
   }
@@ -49,6 +58,12 @@ public class PacketParser {
   }
 
   private int getFieldLength(byte[] header) {
+    int msb = header[4] << 8;
+    System.out.println(msb);
+    int lsb = header[5];
+    System.out.println(lsb);
+    int full_byte = msb | lsb;
+    System.out.println(full_byte);
     return (header[4] << 8 | header[5]) & 0xFFFF;
   }
 

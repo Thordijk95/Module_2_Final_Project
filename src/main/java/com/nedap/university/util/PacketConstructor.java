@@ -4,6 +4,8 @@ import static java.lang.Math.max;
 
 import com.nedap.university.Requests;
 
+// Deprecated!!!
+
 public class PacketConstructor {
 
   ChecksumCalculator checksumCalculator;

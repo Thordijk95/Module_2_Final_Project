@@ -15,7 +15,7 @@ public class Conversions {
   }
 
   public int infoField(int requestType, boolean acknowledgement, int sequenceNumber) {
-    return ((requestType << 9) | (acknowledgement ? 0x01 : 0x00) << 8 | sequenceNumber) & 0xFFFF;
+    return ((requestType << 9) | (acknowledgement ? 0x01 : 0x00) << 8) | (sequenceNumber) & 0xFFFF;
   }
 
 }

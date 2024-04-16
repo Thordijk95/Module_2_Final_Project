@@ -2,6 +2,7 @@ package com.nedap.university.client;
 
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.Requests;
+import com.nedap.university.util.CommandHandler;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -21,13 +22,13 @@ public class MyClientTUI {
     for (int i = 0; i < maxTries; i++) {
       try {
         System.out.println(
-            "Please provide the address/hostname where to connect to the file server:");
-        String hostName = input.nextLine();
-        hostName = "172.16.1.1";
-        System.out.println("Provide the well known port of the server:");
+            "Please provide the address/hostname where to connect to the file server: (default = 172.16.1.1)");
+        String hostname = input.nextLine();
+        hostname = "172.16.1.1";
+        System.out.println("Provide the well known port of the server: (default = 8080");
         String port = input.nextLine();
         port = "8080";
-        myClient = new MyClient(new String[] {hostName, port});
+        myClient = new MyClient(new String[] {hostname, port});
         help();
         // Start taking in commands from the user and passing them on to the server
         while(true) {
@@ -39,7 +40,7 @@ public class MyClientTUI {
             break;
           } else if (Requests.validRequest(args[0].toUpperCase())) {
             try {
-              myClient.executeCommand(args);
+              myClient.commandHandler.executeCommand(args, hostname, Integer.parseInt(port));
             } catch (IncorrectArgumentException ignored) {
             } catch (IOException e) {
               System.out.println("The provided filepath is incorrect");
