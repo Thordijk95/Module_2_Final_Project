@@ -3,6 +3,8 @@ package com.nedap.university.util;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -34,16 +36,25 @@ public class Util {
   }
 
   public void safeFile(String filePath, byte[] data) throws IOException {
-     Path path = Paths.get(filePath);
-     if (Files.exists(path)) {
+    String userDirectory = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
+    System.out.println("User directory: " + userDirectory);
+
+    System.out.println(filePath);
+    Path path;
+    try {
+      path = Paths.get(filePath);
+    } catch (InvalidPathException e){
+      path = Paths.get(System.getProperty("user.home"), "logs", filePath);
+    }
+      if (Files.exists(path)) {
        FileOutputStream outputStream = new FileOutputStream(filePath, true);
        outputStream.write(data);
        outputStream.close();
-     } else {
+      } else {
        Files.createFile(path);
        FileOutputStream outputStream = new FileOutputStream(filePath);
        outputStream.write(data);
        outputStream.close();
-     }
-  }
+      }
+    }
 }

@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Test;
 
 public class TestUtilities {
   Util util;
+
+  String filepath = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny.pdf";
+
   int DATASIZE = 65535 - 10;
   @BeforeEach
   public void setUp() {
@@ -24,11 +27,15 @@ public class TestUtilities {
     byte[] data = util.loadFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny.pdf");
     int expectedLength = data.length / DATASIZE + (data.length % DATASIZE > 0 ? 1 : 0);
     ArrayList<byte[]> dataList = util.splitData(data, DATASIZE);
-    System.out.println(expectedLength);
-    System.out.println(dataList.size());
-    System.out.println(DATASIZE);
-    System.out.println();
-
     assertEquals(expectedLength, dataList.size());
   }
+
+  @Test
+  public void testSafeFile() throws IOException {
+    byte[] data = util.loadFile(filepath);
+    util.safeFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny2.pdf", data);
+    byte[] data2 = util.loadFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny2.pdf");
+    assertArrayEquals(data, data2);
+  }
 }
+

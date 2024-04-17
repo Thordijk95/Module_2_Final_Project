@@ -2,8 +2,6 @@ package com.nedap.university.client;
 
 import com.nedap.university.util.CommandHandler.ClientCommandHandler;
 import com.nedap.university.util.CommandHandler.CommandHandler;
-import com.nedap.university.util.PacketConstructor;
-import com.nedap.university.util.PacketParser;
 import com.nedap.university.util.Util;
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -16,8 +14,6 @@ import com.nedap.university.exceptions.IncorrectArgumentException;
 public class MyClient {
 
   CommandHandler clientCommandHandler;
-  PacketParser packetParser;
-  PacketConstructor packetConstructor;
   Util util;
   DatagramSocket socket;
   InetAddress SERVERADDRESS;
@@ -37,8 +33,6 @@ public class MyClient {
     System.out.println(hostName + ":" + WELLKNOWNPORT);
     socket = new DatagramSocket();
 
-    packetParser = new PacketParser();
-    packetConstructor = new PacketConstructor();
     util = new Util();
     clientCommandHandler = new ClientCommandHandler(socket);
 

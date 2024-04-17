@@ -79,19 +79,20 @@ public class Packet {
   }
 
   public void setHeader() {
+    // byte 0 - 19 = filename
     byte[] fileNameBytes = fileName.getBytes();
     for (int i = 0; i < fileNameBytes.length; i++) {
       header[i] = fileNameBytes[i];
     }
-
+    // byte 20-23 = file type
     byte[] fileTypeBytes = fileType.getBytes();
     for (int i = 0; i < fileTypeBytes.length; i++) {
-      header[DatagramProperties.FILENAMESIZE+i] = fileTypeBytes[i];
+      header[DatagramProperties.FILETYPEOFFSET+i] = fileTypeBytes[i];
     }
-
-    header[DatagramProperties.FILENAMESIZE+DatagramProperties.FILETYPESIZE] =
+    // byte
+    header[DatagramProperties.ACKNOWLEDGMENT_REQUESTOFFSET] =
         (byte) (((acknowledgement ? 0x01 : 0x00) << 4) | (requestType.getValue() & 0xFF)); ;
-    header[DatagramProperties.FILENAMESIZE+DatagramProperties.FILETYPESIZE+1] =
+    header[DatagramProperties.SEQUENCE_NUMBEROFFSET] =
         (byte) (sequenceNumber & 0xFF);
   }
 
@@ -101,9 +102,11 @@ public class Packet {
 
   public void parseHeader() {
     try {
+      fileName = Conversions.fromByteArrayToString(header, DatagramProperties.FILENAMESIZE, DatagramProperties.FILENAMEOFFSET);
+      fileType = Conversions.fromByteArrayToString(header, DatagramProperties.FILETYPESIZE, DatagramProperties.FILETYPEOFFSET);
       requestType = Requests.byValue((header[DatagramProperties.ACKNOWLEDGMENT_REQUESTOFFSET] & 0xF));
-      acknowledgement = (header[0] & 0x10) != 0;
-      sequenceNumber = (header[1] & 0xFF);
+      acknowledgement = (header[DatagramProperties.ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;
+      sequenceNumber = (header[DatagramProperties.SEQUENCE_NUMBEROFFSET] & 0xFF);
     } catch (InvalidRequestValue ignored) {
       // drop the packet
     }
@@ -120,6 +123,7 @@ public class Packet {
   public int getSequenceNumber() {
     return sequenceNumber;
   }
+
 
   public void setChecksum() {}
 

@@ -50,6 +50,9 @@ public class ClientCommandHandler extends abstractCommandHandler{
         System.out.println("Last packet send sequence number: " + newPacket.sequenceNumber);
         System.out.println("Last packet received sequence number: " + inboundPacket.sequenceNumber);
       }
+      if (packetCounter == Math.pow(2,8)) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
+        packetCounter = 0;
+      }
     }
   }
   @Override

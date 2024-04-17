@@ -7,12 +7,25 @@ import org.junit.jupiter.api.Test;
 
 public class TestPacket {
 
+  Requests requestType = Requests.UPLOAD;
+  boolean acknowledged = false;
+  int sequenceNumber = 0;
+  String filename = "Tiny.pdf";
+
+
   @Test
-  public void testParseHeader() {
-    Packet packet = new Packet(Requests.UPLOAD, false, 0, "Tiny.pdf", new byte[0]);
+  public void testRequestType() {
+    Packet packet = new Packet(requestType, acknowledged, sequenceNumber, filename, new byte[0]);
     assertEquals(Requests.UPLOAD, packet.getRequestType());
     packet.parseHeader();
     assertEquals(Requests.UPLOAD, packet.getRequestType());
   }
 
+  @Test
+  public void testFilename() {
+    Packet packet = new Packet(requestType, acknowledged, sequenceNumber , filename, new byte[0]);
+    assertEquals(filename, packet.fileName + "." + packet.fileType);
+    packet.parseHeader();
+    assertEquals(filename, packet.fileName + "." + packet.fileType);
+  }
 }

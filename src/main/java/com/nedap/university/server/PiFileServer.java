@@ -3,7 +3,6 @@ package com.nedap.university.server;
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.util.CommandHandler.CommandHandler;
 import com.nedap.university.util.Packet;
-import com.nedap.university.util.PacketParser;
 import com.nedap.university.util.CommandHandler.ServerCommandHandler;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -18,16 +17,14 @@ public class PiFileServer {
   private List<String> data = new ArrayList<String>();
   private Random random;
 
-  static String storageDirectory = "/home/pi/PiFileServerStorageDirectory";
+  static String storageDirectory = "/home/pi/PiFileServerStorageDirectory/";
 
   CommandHandler serverCommandHandler;
-
-  PacketParser packetParser;
+//
 
   public PiFileServer(int port, int headersize, int datagramsize) throws SocketException {
       socket = new DatagramSocket(port);
-      packetParser = new PacketParser();
-      serverCommandHandler = new ServerCommandHandler(socket);
+      serverCommandHandler = new ServerCommandHandler(socket, storageDirectory);
   }
 
   public static void main(Integer[] args) {
@@ -69,7 +66,7 @@ public class PiFileServer {
     System.out.println(inboundPacket.getData().length + " bytes received");
     // Handle the packet
     System.out.println("Request = " + inboundPacket.getRequestType().toString());
-    serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.fileName}, request.getAddress(), request.getPort(), request.getData());
+    serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.fileName+"."+inboundPacket.fileType}, request.getAddress(), request.getPort(), request.getData());
 
     // acknowledge the packet
     Packet outboundPacket = new Packet(inboundPacket.getRequestType(), true, inboundPacket.sequenceNumber);

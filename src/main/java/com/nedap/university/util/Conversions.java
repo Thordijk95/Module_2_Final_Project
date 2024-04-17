@@ -14,8 +14,16 @@ public class Conversions {
     return result;
   }
 
-  public int infoField(int requestType, boolean acknowledgement, int sequenceNumber) {
-    return ((requestType << 9) | (acknowledgement ? 0x01 : 0x00) << 8) | (sequenceNumber) & 0xFFFF;
+  public static String fromByteArrayToString(byte[] data, int length, int offset) {
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < length; i++) {
+      if ((data[offset+i] & 0xFF) != 0x00) {
+        byte character = (byte) ((data[offset + i] & 0xFF));
+        String characterString = new String(Character.toChars(character));
+        builder.append(characterString);
+      }
+    }
+    return builder.toString();
   }
 
 }
