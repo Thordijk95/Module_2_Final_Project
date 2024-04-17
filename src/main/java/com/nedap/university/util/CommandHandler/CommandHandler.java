@@ -8,9 +8,9 @@ public interface CommandHandler {
 
   void executeCommand(String[] command, InetAddress hostname, int port, byte[] data) throws IncorrectArgumentException, IOException;
 
-  void getList();
+  void getList() throws IOException;
 
-  void upload(String filePath, InetAddress hostname, int port, byte[] data) throws IOException;
+  void upload(String filePath, byte[] data) throws IOException;
 
   void download(String filePath);
 

@@ -9,20 +9,43 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ClientCommandHandler extends abstractCommandHandler{
 
-  public ClientCommandHandler(DatagramSocket socket){
+  InetAddress address;
+  int port;
+
+  public ClientCommandHandler(DatagramSocket socket, InetAddress address, int port){
     super(socket);
+    this.address = address;
+    this.port = port;
   }
 
   @Override
-  public void getList() {
+  public void getList() throws IOException {
     System.out.println("Retrieving list from server");
+    // sent the request to get the list
+    Packet packet = new Packet(Requests.LIST, true, false, 0);
+    DatagramPacket outboundDatagramPacket = new DatagramPacket(packet.getData(), packet.getData().length, address, port);
+    socket.send(outboundDatagramPacket);
+
+    byte[] buffer = new byte[DatagramProperties.DATAGRAMSIZE];
+    DatagramPacket inboundDatagramPacket = new DatagramPacket(buffer, buffer.length);
+    socket.receive(inboundDatagramPacket);
+    Packet inboundPacket = new Packet(inboundDatagramPacket.getData());
+    if (inboundPacket.acknowledgement && inboundPacket.requestType == Requests.LIST) {
+      // The request for the list has been acknowledged, the list of files is contained in data
+      ArrayList<String> fileList = new ArrayList<>();
+      while(true) {
+
+      }
+    }
+
   }
 
   @Override
-  public void upload(String filePath, InetAddress hostname, int port, byte[] ignored_data) throws IOException {
+  public void upload(String filePath, byte[] ignored_data) throws IOException {
     // TODO remove static file path
     filePath = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny.pdf";
     System.out.println("Uploading file: " + filePath + " to server");
@@ -30,15 +53,17 @@ public class ClientCommandHandler extends abstractCommandHandler{
     ArrayList<byte[]> dataList = util.splitData(data, DatagramProperties.DATASIZE);
     int packetCount = dataList.size();
     int packetCounter = 0;
+    boolean first = true;
     String filename = filePath.split("/")[filePath.split("/").length - 1];
     for (byte[] dataPacket : dataList) {
-      Packet newPacket = new Packet(Requests.UPLOAD, false, packetCounter, filename, dataPacket);
-      DatagramPacket newDatagramPacket = new DatagramPacket(newPacket.getData(), newPacket.getData().length, hostname, port);
+      Packet newPacket = new Packet(Requests.UPLOAD, first, false, packetCounter, filename, dataPacket);
+      DatagramPacket newDatagramPacket = new DatagramPacket(newPacket.getData(), newPacket.getData().length, address, port);
       System.out.println("Sending packet " + (packetCounter+1) + ": " + packetCount);
       socket.send(newDatagramPacket);
       packetCounter++;
+      first = false;
 
-      byte[] buffer = new byte[1024];
+      byte[] buffer = new byte[DatagramProperties.DATAGRAMSIZE];
       DatagramPacket response = new DatagramPacket(buffer, buffer.length);
       socket.receive(response);
       Packet inboundPacket = new Packet(response.getData());

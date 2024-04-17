@@ -4,6 +4,7 @@ import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.util.CommandHandler.CommandHandler;
 import com.nedap.university.util.Packet;
 import com.nedap.university.util.CommandHandler.ServerCommandHandler;
+import com.nedap.university.util.Util;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -20,11 +21,13 @@ public class PiFileServer {
   static String storageDirectory = "/home/pi/PiFileServerStorageDirectory/";
 
   CommandHandler serverCommandHandler;
+  Util util;
 //
 
   public PiFileServer(int port, int headersize, int datagramsize) throws SocketException {
       socket = new DatagramSocket(port);
       serverCommandHandler = new ServerCommandHandler(socket, storageDirectory);
+      util = new Util();
   }
 
   public static void main(Integer[] args) {
@@ -61,15 +64,20 @@ public class PiFileServer {
 
   private void parseRequest(DatagramPacket request)
       throws IOException, IncorrectArgumentException {
+    System.out.println("parsing request");
     Packet inboundPacket = new Packet(request.getData());
-
+    if (inboundPacket.firstPacket) {
+      System.out.println("Removing the file if it already exists");
+      util.removeFile(storageDirectory + inboundPacket.fileName+"."+inboundPacket.fileType);
+    }
     System.out.println(inboundPacket.getData().length + " bytes received");
     // Handle the packet
     System.out.println("Request = " + inboundPacket.getRequestType().toString());
-    serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.fileName+"."+inboundPacket.fileType}, request.getAddress(), request.getPort(), request.getData());
+    serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.fileName+"."+inboundPacket.fileType},
+        request.getAddress(), request.getPort(), request.getData());
 
     // acknowledge the packet
-    Packet outboundPacket = new Packet(inboundPacket.getRequestType(), true, inboundPacket.sequenceNumber);
+    Packet outboundPacket = new Packet(inboundPacket.getRequestType(),false, true, inboundPacket.sequenceNumber);
     DatagramPacket outboundDatagramPacket = new DatagramPacket(outboundPacket.getData(), outboundPacket.getData().length, request.getAddress(), request.getPort());
     System.out.println("Sending a response packet for the connection request");
     socket.send(outboundDatagramPacket);

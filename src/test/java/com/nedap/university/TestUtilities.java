@@ -30,12 +30,19 @@ public class TestUtilities {
     assertEquals(expectedLength, dataList.size());
   }
 
+
   @Test
   public void testSafeFile() throws IOException {
+    util.removeFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/saved/tiny.pdf");
     byte[] data = util.loadFile(filepath);
-    util.safeFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny2.pdf", data);
-    byte[] data2 = util.loadFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny2.pdf");
+    util.safeFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/saved/tiny.pdf", data);
+    byte[] data2 = util.loadFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/saved/tiny.pdf");
     assertArrayEquals(data, data2);
+  }
+
+  @Test
+  public void testOverwriteFile() throws IOException {
+    testSafeFile();
   }
 }
 

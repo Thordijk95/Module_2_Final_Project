@@ -1,11 +1,9 @@
 package com.nedap.university.util;
 
-import static com.nedap.university.util.DatagramProperties.DATAGRAMSIZE;
 import static com.nedap.university.util.DatagramProperties.HEADERSIZE;
 
 import com.nedap.university.Requests;
 import com.nedap.university.exceptions.InvalidRequestValue;
-import com.nedap.university.util.*;
 
 public class Packet {
 
@@ -14,6 +12,7 @@ public class Packet {
   private byte[] header;
   private byte[] data;
   public Requests requestType;
+  public boolean firstPacket;
   public boolean acknowledgement;
   public int sequenceNumber;
   public String fileName;
@@ -39,10 +38,12 @@ public class Packet {
     parseHeader();
   }
 
-  // Create an acknowledgement packet with header and no data to send
-  public Packet(Requests requestType, boolean acknowledgement, int sequenceNumber) {
+  // Create ane empty packet with header and no data to send
+  // use for acknowledge or list requests
+  public Packet(Requests requestType, boolean firstPacket, boolean acknowledgement, int sequenceNumber) {
     header = new byte[HEADERSIZE];
     this.requestType = requestType;
+    this.firstPacket = firstPacket;
     this.acknowledgement = acknowledgement;
     this.sequenceNumber = sequenceNumber;
     this.fileName = "";
@@ -52,10 +53,11 @@ public class Packet {
   }
 
   // Create a packet with header and data to send
-  public Packet(Requests requestType, boolean acknowledgement, int sequenceNumber, String fileName, byte[] data) {
+  public Packet(Requests requestType, boolean firstPacket, boolean acknowledgement, int sequenceNumber, String fileName, byte[] data) {
     header = new byte[HEADERSIZE];
     this.data = new byte[Math.min(DatagramProperties.DATAGRAMSIZE, HEADERSIZE + data.length)];
     this.requestType = requestType;
+    this.firstPacket = firstPacket;
     this.acknowledgement = acknowledgement;
     this.sequenceNumber = sequenceNumber;
     String[] file = fileName.split("\\.");
@@ -90,8 +92,8 @@ public class Packet {
       header[DatagramProperties.FILETYPEOFFSET+i] = fileTypeBytes[i];
     }
     // byte
-    header[DatagramProperties.ACKNOWLEDGMENT_REQUESTOFFSET] =
-        (byte) (((acknowledgement ? 0x01 : 0x00) << 4) | (requestType.getValue() & 0xFF)); ;
+    header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] =
+        (byte) (((firstPacket ? 0x01 : 0x00) << 5) | ((acknowledgement ? 0x01 : 0x00) << 4) | (requestType.getValue() & 0xFF)); ;
     header[DatagramProperties.SEQUENCE_NUMBEROFFSET] =
         (byte) (sequenceNumber & 0xFF);
   }
@@ -104,8 +106,9 @@ public class Packet {
     try {
       fileName = Conversions.fromByteArrayToString(header, DatagramProperties.FILENAMESIZE, DatagramProperties.FILENAMEOFFSET);
       fileType = Conversions.fromByteArrayToString(header, DatagramProperties.FILETYPESIZE, DatagramProperties.FILETYPEOFFSET);
-      requestType = Requests.byValue((header[DatagramProperties.ACKNOWLEDGMENT_REQUESTOFFSET] & 0xF));
-      acknowledgement = (header[DatagramProperties.ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;
+      requestType = Requests.byValue((header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0xF));
+      firstPacket = (header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x20) != 0;
+      acknowledgement = (header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;
       sequenceNumber = (header[DatagramProperties.SEQUENCE_NUMBEROFFSET] & 0xFF);
     } catch (InvalidRequestValue ignored) {
       // drop the packet

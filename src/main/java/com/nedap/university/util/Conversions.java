@@ -1,5 +1,7 @@
 package com.nedap.university.util;
 
+import java.util.ArrayList;
+
 public class Conversions {
 
   public Conversions() {}
@@ -24,6 +26,10 @@ public class Conversions {
       }
     }
     return builder.toString();
+  }
+
+  public static void fromByteArrayToFileList(byte[] data, ArrayList<String> fileList) {
+
   }
 
 }

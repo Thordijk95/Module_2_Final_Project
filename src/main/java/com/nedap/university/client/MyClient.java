@@ -17,7 +17,6 @@ public class MyClient {
   Util util;
   DatagramSocket socket;
   InetAddress SERVERADDRESS;
-  InetAddress CLIENTADDRESS;
   int WELLKNOWNPORT;
 
   public MyClient(String[] args)
@@ -34,7 +33,7 @@ public class MyClient {
     socket = new DatagramSocket();
 
     util = new Util();
-    clientCommandHandler = new ClientCommandHandler(socket);
+    clientCommandHandler = new ClientCommandHandler(socket, SERVERADDRESS, WELLKNOWNPORT);
 
     try {
       if(clientCommandHandler.testConnectionAtRunTime(SERVERADDRESS, WELLKNOWNPORT)) {

@@ -3,6 +3,7 @@ package com.nedap.university.util;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -46,15 +47,46 @@ public class Util {
     } catch (InvalidPathException e){
       path = Paths.get(System.getProperty("user.home"), "logs", filePath);
     }
-      if (Files.exists(path)) {
-       FileOutputStream outputStream = new FileOutputStream(filePath, true);
-       outputStream.write(data);
-       outputStream.close();
-      } else {
-       Files.createFile(path);
-       FileOutputStream outputStream = new FileOutputStream(filePath);
-       outputStream.write(data);
-       outputStream.close();
+    if (Files.exists(path)) {
+     FileOutputStream outputStream = new FileOutputStream(filePath, true);
+     outputStream.write(data);
+     outputStream.close();
+    } else {
+     Files.createFile(path);
+     FileOutputStream outputStream = new FileOutputStream(filePath);
+     outputStream.write(data);
+     outputStream.close();
+    }
+  }
+
+  public void removeFile(String filePath) throws IOException {
+    Path path;
+    System.out.println("Provided filePath= " + filePath);
+    try {
+      path = Paths.get(filePath);
+    } catch (InvalidPathException e){
+      System.out.println("failed to remove the file: " + filePath);
+      return;
+    }
+    if (Files.exists(path)) {
+      Files.delete(path);
+      System.out.println("removed file");
+
+    } else {
+      System.out.println("failed to remove the file: " + path);
+    }
+  }
+
+  public ArrayList<String> getFileList(String directoryPath) throws IOException {
+    // Get the list of files from the storage directory
+    ArrayList<String> fileList = new ArrayList<>();
+    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(directoryPath))) {
+      for (Path path : directoryStream) {
+        if(!Files.isDirectory(path)) {
+          fileList.add(path.getFileName().toString());
+        }
       }
     }
+    return fileList;
+  }
 }

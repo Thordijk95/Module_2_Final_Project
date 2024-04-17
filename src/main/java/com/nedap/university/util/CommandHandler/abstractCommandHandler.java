@@ -20,10 +20,10 @@ public abstract class abstractCommandHandler implements CommandHandler {
 
   @Override
   public void executeCommand(String[] command, InetAddress hostname, int port, byte[] data) throws IncorrectArgumentException, IOException {
-    if (command.length > 1 || command[0].equals(Requests.LIST.name())) {
+    if (command[0].toUpperCase().equals(Requests.LIST.name()) || command.length > 1) {
       switch (command[0].toUpperCase()) {
         case "LIST" -> getList();
-        case "UPLOAD" ->  upload(command[1], hostname, port, data);
+        case "UPLOAD" ->  upload(command[1], data);
         case "DOWNLOAD" -> download(command[1]);
         case "REMOVE" -> remove(command[1]);
         case "RENAME" -> rename(command[1]);
