@@ -28,8 +28,20 @@ public class Conversions {
     return builder.toString();
   }
 
-  public static void fromByteArrayToFileList(byte[] data, ArrayList<String> fileList) {
+  public static String[] fromByteArrayToStringArray(byte[] data, String delimiter) {
+    String allFileNames = fromByteArrayToString(data, data.length,0);
+    return allFileNames.split(delimiter);
+  }
 
+  public static byte[] fromArrayListToByteArray(ArrayList<String> list) {
+    StringBuilder builder = new StringBuilder();
+    for (int i =0 ; i < list.size() ; i++) {
+      builder.append(list.get(i) + DatagramProperties.SEPERATOR);
+    }
+    // Three separators indicate end of the data
+    builder.append(DatagramProperties.SEPERATOR);
+    builder.append(DatagramProperties.SEPERATOR);
+    return builder.toString().getBytes();
   }
 
 }

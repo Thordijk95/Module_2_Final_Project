@@ -1,22 +1,27 @@
-package com.nedap.university.util;
+package com.nedap.university.util.Packets;
 
 import static com.nedap.university.util.DatagramProperties.HEADERSIZE;
 
 import com.nedap.university.Requests;
 import com.nedap.university.exceptions.InvalidRequestValue;
+import com.nedap.university.util.ChecksumCalculator;
+import com.nedap.university.util.Conversions;
+import com.nedap.university.util.DatagramProperties;
+import com.nedap.university.util.Util;
+import java.util.regex.PatternSyntaxException;
 
-public class Packet {
+public abstract class Packet {
 
   ChecksumCalculator checksumCalculator = new ChecksumCalculator();
 
-  private byte[] header;
-  private byte[] data;
-  public Requests requestType;
-  public boolean firstPacket;
-  public boolean acknowledgement;
-  public int sequenceNumber;
-  public String fileName;
-  public String fileType;
+  byte[] header;
+  byte[] data;
+  Requests requestType;
+  boolean firstPacket;
+  boolean acknowledgement;
+  int sequenceNumber;
+  String fileName;
+  String fileType;
 
   // Create an empty packet
   public Packet() {
@@ -29,14 +34,7 @@ public class Packet {
     setData(new byte[1]);
   }
 
-  // Create a packet to receive inbound data
-  public Packet(byte[] data) {
-    header = new byte[HEADERSIZE];
-    this.data = new byte[data.length-HEADERSIZE];
-    System.arraycopy(data, 0, header, 0, HEADERSIZE);
-    System.arraycopy(data, HEADERSIZE, this.data, 0, data.length-HEADERSIZE);
-    parseHeader();
-  }
+
 
   // Create ane empty packet with header and no data to send
   // use for acknowledge or list requests
@@ -60,9 +58,21 @@ public class Packet {
     this.firstPacket = firstPacket;
     this.acknowledgement = acknowledgement;
     this.sequenceNumber = sequenceNumber;
-    String[] file = fileName.split("\\.");
-    this.fileName = file[0];
-    this.fileType = file[1];
+    try {
+      if (Util.fileNameRequired(requestType)) {
+        String[] file = fileName.split("\\.");
+        this.fileName = file[0];
+        this.fileType = file[1];
+      } else {
+        this.fileName = "";
+        this.fileType = "";
+      }
+    } catch (ArrayIndexOutOfBoundsException e) {
+      System.out.println("Splitting filename on . has failed, array index out of bounds!");
+    } catch (PatternSyntaxException e) {
+      System.out.println("Provided syntax" + fileName + " is incorrect!");
+      System.out.println("Filename syntax should be <filename>.<filetype>");
+    }
     setData(data);
   }
 

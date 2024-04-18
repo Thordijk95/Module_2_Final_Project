@@ -2,7 +2,7 @@ package com.nedap.university;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.nedap.university.util.Packet;
+import com.nedap.university.util.Packets.Packet;
 import org.junit.jupiter.api.Test;
 
 public class TestPacket {

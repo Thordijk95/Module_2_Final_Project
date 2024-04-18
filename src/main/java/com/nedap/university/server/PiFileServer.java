@@ -2,7 +2,11 @@ package com.nedap.university.server;
 
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.util.CommandHandler.CommandHandler;
-import com.nedap.university.util.Packet;
+import com.nedap.university.util.Packets.AckPacket;
+import com.nedap.university.util.Packets.InboundPacket;
+import com.nedap.university.util.Packets.InterfacePacket;
+import com.nedap.university.util.Packets.OutboundPacket;
+import com.nedap.university.util.Packets.Packet;
 import com.nedap.university.util.CommandHandler.ServerCommandHandler;
 import com.nedap.university.util.Util;
 import java.io.IOException;
@@ -10,6 +14,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -41,10 +46,9 @@ public class PiFileServer {
       server.service();
     } catch (SocketException e) {
       System.out.println("Socket unavailable");
-      e.printStackTrace();
+      System.out.println(e.getMessage());
     } catch (IOException | IncorrectArgumentException e) {
-      System.out.println("IO error");
-      e.printStackTrace();
+      System.out.println(e.getMessage());
     }
 
   }
@@ -64,24 +68,33 @@ public class PiFileServer {
 
   private void parseRequest(DatagramPacket request)
       throws IOException, IncorrectArgumentException {
-    System.out.println("parsing request");
-    Packet inboundPacket = new Packet(request.getData());
-    if (inboundPacket.firstPacket) {
-      System.out.println("Removing the file if it already exists");
-      util.removeFile(storageDirectory + inboundPacket.fileName+"."+inboundPacket.fileType);
-    }
-    System.out.println(inboundPacket.getData().length + " bytes received");
-    // Handle the packet
-    System.out.println("Request = " + inboundPacket.getRequestType().toString());
-    serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.fileName+"."+inboundPacket.fileType},
-        request.getAddress(), request.getPort(), request.getData());
+    InterfacePacket inboundPacket = new InboundPacket(request.getData());
+    System.out.println(inboundPacket.isAcknowledgement());
+    System.out.println(inboundPacket.getRequestType());
 
-    // acknowledge the packet
-    Packet outboundPacket = new Packet(inboundPacket.getRequestType(),false, true, inboundPacket.sequenceNumber);
-    DatagramPacket outboundDatagramPacket = new DatagramPacket(outboundPacket.getData(), outboundPacket.getData().length, request.getAddress(), request.getPort());
-    System.out.println("Sending a response packet for the connection request");
-    socket.send(outboundDatagramPacket);
-    System.out.println("Checksum is incorrect!");
+    if (inboundPacket.isValidPacket()) {
+      // Acknowledge the packet
+      System.out.println("Sending acknowledgement!");
+      InterfacePacket ackPacket = new AckPacket(inboundPacket.getRequestType(), inboundPacket.getSequenceNumber());
+      System.out.println("Request type: "+ackPacket.getRequestType());
+      System.out.println("acknowledgement: " + ackPacket.isAcknowledgement());
+      System.out.println("Ack Data: " + Arrays.toString(ackPacket.getData()));
+      DatagramPacket ackDatagramPacket = new DatagramPacket(ackPacket.getData(), ackPacket.getData().length, request.getAddress(), request.getPort());
+      socket.send(ackDatagramPacket);
+
+
+      if (inboundPacket.isFirstPacket() && !(inboundPacket.getFileName().isEmpty() || inboundPacket.getFileType().isEmpty())) {
+        util.removeFile(storageDirectory + inboundPacket.getFileName()+"."+inboundPacket.getFileType());
+      }
+      // Handle the packet
+      System.out.println("executing request: " + inboundPacket.getRequestType().toString());
+      serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.getFileName()+"."+inboundPacket.getFileType()},
+          request.getAddress(), request.getPort(), request.getData());
+
+    } else {
+      System.out.println("Dropped the packet!");
+    }
+
   }
 
 }

@@ -1,5 +1,6 @@
 package com.nedap.university.util;
 
+import com.nedap.university.Requests;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,15 +17,15 @@ public class Util {
 
   public Util(){}
 
-  public ArrayList<byte[]> splitData(byte[] data, int dataSize) {
+  public ArrayList<byte[]> splitData(byte[] data) {
 
     ArrayList<byte[]> dataList = new ArrayList<>();
     int dataPointer = 0;
     while (dataPointer < data.length) {
-      byte[] tmpData = new byte[Math.min(data.length-dataPointer, dataSize)];
-      System.arraycopy(data, dataPointer, tmpData, 0, Math.min(data.length-dataPointer, dataSize));
+      byte[] tmpData = new byte[Math.min(data.length-dataPointer, DatagramProperties.DATASIZE)];
+      System.arraycopy(data, dataPointer, tmpData, 0, Math.min(data.length-dataPointer, DatagramProperties.DATASIZE));
       dataList.add(tmpData);
-      dataPointer += Math.min(data.length-dataPointer, dataSize);
+      dataPointer += Math.min(data.length-dataPointer, DatagramProperties.DATASIZE);
     }
     return dataList;
   }
@@ -61,17 +62,15 @@ public class Util {
 
   public void removeFile(String filePath) throws IOException {
     Path path;
-    System.out.println("Provided filePath= " + filePath);
     try {
       path = Paths.get(filePath);
-    } catch (InvalidPathException e){
+    } catch (InvalidPathException e) {
       System.out.println("failed to remove the file: " + filePath);
       return;
     }
     if (Files.exists(path)) {
       Files.delete(path);
       System.out.println("removed file");
-
     } else {
       System.out.println("failed to remove the file: " + path);
     }
@@ -88,5 +87,12 @@ public class Util {
       }
     }
     return fileList;
+  }
+
+  public static boolean fileNameRequired(Requests requestsType) {
+    return switch (requestsType) {
+      case DOWNLOAD, UPLOAD, REMOVE, RENAME -> true;
+      default -> false;
+    };
   }
 }

@@ -38,16 +38,17 @@ public class MyClientTUI {
           if (args[0].toUpperCase().equals(Requests.EXIT.name())) {
             System.out.println("Stopping the client!");
             break;
+          } else if (args[0].toUpperCase().equals(Requests.HELP.name())) {
+            help();
           } else if (Requests.validRequest(args[0].toUpperCase())) {
             try {
               myClient.clientCommandHandler.executeCommand(args, InetAddress.getByName(hostname), Integer.parseInt(port), null);
-            } catch (IncorrectArgumentException ignored) {
+            } catch (IncorrectArgumentException e) {
+              System.out.println(e.getMessage());
             } catch (IOException e) {
               System.out.println("The provided filepath is incorrect");
               e.printStackTrace();
             }
-          } else if (args[0].toLowerCase().equals("help")) {
-            help();
           } else {
             System.out.println("Invalid request");
             help();

@@ -10,6 +10,8 @@ public enum Requests {
   RENAME(5),
   CONNECT(9),
   EXIT(10),
+  ERROR(11),
+  HELP(-1),
   EMPTY(0);
 
   private int value;
@@ -33,7 +35,7 @@ public enum Requests {
 
   public static boolean validRequest(String request) {
     return switch (request) {
-      case "UPLOAD", "DOWNLOAD", "LIST", "REMOVE", "RENAME", "EXIT" -> true;
+      case "CONNECT", "UPLOAD", "DOWNLOAD", "LIST", "REMOVE", "RENAME", "EXIT", "EMPTY" -> true;
       default -> false;
     };
   }
