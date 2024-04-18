@@ -18,6 +18,7 @@ public class MyClient {
   DatagramSocket socket;
   InetAddress SERVERADDRESS;
   int WELLKNOWNPORT;
+  String STORAGEDIRECTORY;
 
   public MyClient(String[] args)
       throws SocketException, UnknownHostException, IncorrectArgumentException {
@@ -28,12 +29,13 @@ public class MyClient {
     String hostName = args[0];
     WELLKNOWNPORT = Integer.parseInt(args[1]);
     SERVERADDRESS = InetAddress.getByName(hostName);
+    STORAGEDIRECTORY = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/";
 
     System.out.println(hostName + ":" + WELLKNOWNPORT);
     socket = new DatagramSocket();
 
     util = new Util();
-    clientCommandHandler = new ClientCommandHandler(socket, SERVERADDRESS, WELLKNOWNPORT);
+    clientCommandHandler = new ClientCommandHandler(socket, SERVERADDRESS, WELLKNOWNPORT, STORAGEDIRECTORY);
 
     try {
       if(clientCommandHandler.testConnectionAtRunTime(SERVERADDRESS, WELLKNOWNPORT)) {

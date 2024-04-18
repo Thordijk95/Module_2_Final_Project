@@ -1,9 +1,8 @@
 package com.nedap.university.util.Packets;
 
-import static com.nedap.university.util.DatagramProperties.HEADERSIZE;
+import static com.nedap.university.util.DatagramProperties.HEADER_SIZE;
 
 import com.nedap.university.Requests;
-import com.nedap.university.util.DatagramProperties;
 import com.nedap.university.util.Util;
 import java.util.regex.PatternSyntaxException;
 
@@ -31,8 +30,8 @@ public class OutboundPacket extends AbstractPacket{
       System.out.println("Filename syntax should be <filename>.<filetype>");
     }
     constructHeader();
-    setData(getHeader(), 0, 0, HEADERSIZE);
-    setData(data, 0, HEADERSIZE, data.length);
+    setData(getHeader(), 0, 0, HEADER_SIZE);
+    setData(data, 0, HEADER_SIZE, data.length);
   }
 
 }

@@ -1,6 +1,6 @@
 package com.nedap.university.util.Packets;
 
-import static com.nedap.university.util.DatagramProperties.HEADERSIZE;
+import static com.nedap.university.util.DatagramProperties.HEADER_SIZE;
 
 import com.nedap.university.Requests;
 import com.nedap.university.exceptions.InvalidRequestValue;
@@ -25,7 +25,7 @@ public abstract class Packet {
 
   // Create an empty packet
   public Packet() {
-    header = new byte[HEADERSIZE];
+    header = new byte[HEADER_SIZE];
     requestType = Requests.EMPTY;
     acknowledgement = false;
     sequenceNumber = 0;
@@ -39,7 +39,7 @@ public abstract class Packet {
   // Create ane empty packet with header and no data to send
   // use for acknowledge or list requests
   public Packet(Requests requestType, boolean firstPacket, boolean acknowledgement, int sequenceNumber) {
-    header = new byte[HEADERSIZE];
+    header = new byte[HEADER_SIZE];
     this.requestType = requestType;
     this.firstPacket = firstPacket;
     this.acknowledgement = acknowledgement;
@@ -52,8 +52,8 @@ public abstract class Packet {
 
   // Create a packet with header and data to send
   public Packet(Requests requestType, boolean firstPacket, boolean acknowledgement, int sequenceNumber, String fileName, byte[] data) {
-    header = new byte[HEADERSIZE];
-    this.data = new byte[Math.min(DatagramProperties.DATAGRAMSIZE, HEADERSIZE + data.length)];
+    header = new byte[HEADER_SIZE];
+    this.data = new byte[Math.min(DatagramProperties.DATAGRAMSIZE, HEADER_SIZE + data.length)];
     this.requestType = requestType;
     this.firstPacket = firstPacket;
     this.acknowledgement = acknowledgement;
@@ -82,8 +82,8 @@ public abstract class Packet {
 
   public void setData(byte[] data) {
     setHeader();
-    System.arraycopy(header, 0, this.data, 0, HEADERSIZE);
-    System.arraycopy(data, 0, this.data, HEADERSIZE, data.length);
+    System.arraycopy(header, 0, this.data, 0, HEADER_SIZE);
+    System.arraycopy(data, 0, this.data, HEADER_SIZE, data.length);
   }
 
   public byte[] getData() {
@@ -114,8 +114,8 @@ public abstract class Packet {
 
   public void parseHeader() {
     try {
-      fileName = Conversions.fromByteArrayToString(header, DatagramProperties.FILENAMESIZE, DatagramProperties.FILENAMEOFFSET);
-      fileType = Conversions.fromByteArrayToString(header, DatagramProperties.FILETYPESIZE, DatagramProperties.FILETYPEOFFSET);
+      fileName = Conversions.fromByteArrayToString(header, DatagramProperties.FILENAME_SIZE, DatagramProperties.FILENAME_OFFSET);
+      fileType = Conversions.fromByteArrayToString(header, DatagramProperties.FILE_TYPE_SIZE, DatagramProperties.FILETYPEOFFSET);
       requestType = Requests.byValue((header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0xF));
       firstPacket = (header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x20) != 0;
       acknowledgement = (header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;

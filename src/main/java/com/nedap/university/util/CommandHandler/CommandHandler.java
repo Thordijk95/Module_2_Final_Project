@@ -11,13 +11,13 @@ public interface CommandHandler {
 
   void getList(InetAddress hostname, int port) throws IOException;
 
-  void upload(String filePath, byte[] data) throws IOException;
+  void upload(String fileName, byte[] data) throws IOException;
 
-  void download(String filePath, InetAddress hostname, int port) throws IOException;
+  void download(String fileName, InetAddress hostname, int port) throws IOException;
 
-  void remove(String filePath) throws IOException;
+  void remove(String fileName) throws IOException;
 
-  void rename(String filePath) throws IOException;
+  void rename(String fileName) throws IOException;
 
   void acknowledge(Requests request, int sequenceNumber, InetAddress hostname, int port) throws IOException;
 

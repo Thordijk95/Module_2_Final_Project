@@ -1,7 +1,5 @@
 package com.nedap.university.util.Packets;
 
-import static com.nedap.university.util.DatagramProperties.HEADERSIZE;
-
 import com.nedap.university.Requests;
 
 public class EmptyPacket extends AbstractPacket {

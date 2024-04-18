@@ -1,14 +1,6 @@
 package com.nedap.university.util.Packets;
 
-import static com.nedap.university.util.DatagramProperties.HEADERSIZE;
-
 import com.nedap.university.Requests;
-import com.nedap.university.exceptions.InvalidRequestValue;
-import com.nedap.university.util.ChecksumCalculator;
-import com.nedap.university.util.Conversions;
-import com.nedap.university.util.DatagramProperties;
-import com.nedap.university.util.Util;
-import java.util.regex.PatternSyntaxException;
 
 public interface InterfacePacket {
 

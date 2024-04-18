@@ -3,15 +3,14 @@ package com.nedap.university.util;
 import com.nedap.university.Requests;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Util {
 
@@ -22,10 +21,10 @@ public class Util {
     ArrayList<byte[]> dataList = new ArrayList<>();
     int dataPointer = 0;
     while (dataPointer < data.length) {
-      byte[] tmpData = new byte[Math.min(data.length-dataPointer, DatagramProperties.DATASIZE)];
-      System.arraycopy(data, dataPointer, tmpData, 0, Math.min(data.length-dataPointer, DatagramProperties.DATASIZE));
+      byte[] tmpData = new byte[Math.min(data.length-dataPointer, DatagramProperties.DATA_SIZE)];
+      System.arraycopy(data, dataPointer, tmpData, 0, Math.min(data.length-dataPointer, DatagramProperties.DATA_SIZE));
       dataList.add(tmpData);
-      dataPointer += Math.min(data.length-dataPointer, DatagramProperties.DATASIZE);
+      dataPointer += Math.min(data.length-dataPointer, DatagramProperties.DATA_SIZE);
     }
     return dataList;
   }
@@ -94,5 +93,12 @@ public class Util {
       case DOWNLOAD, UPLOAD, REMOVE, RENAME -> true;
       default -> false;
     };
+  }
+
+  public byte[] lastPacketInList(byte[] packet, ArrayList<byte[]> packetList ) {
+    if (Arrays.equals(packetList.get(packetList.size() - 1), packet)) {
+      packet = (Conversions.fromByteArrayToString(packet, packet.length, 0) + ";").getBytes();
+    }
+    return packet;
   }
 }

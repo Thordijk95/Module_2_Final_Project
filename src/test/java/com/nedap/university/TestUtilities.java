@@ -6,12 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.nedap.university.util.DatagramProperties;
 import com.nedap.university.util.Util;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.net.DatagramPacket;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +25,8 @@ public class TestUtilities {
   @Test
   public void testSplitData() throws IOException {
     byte[] data = util.loadFile("/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/tiny.pdf");
-    int expectedLength = data.length / DatagramProperties.DATASIZE + (data.length % DatagramProperties.DATASIZE > 0 ? 1 : 0);
+    int expectedLength = data.length / DatagramProperties.DATA_SIZE
+        + (data.length % DatagramProperties.DATA_SIZE > 0 ? 1 : 0);
     ArrayList<byte[]> dataList = util.splitData(data);
     assertEquals(expectedLength, dataList.size());
   }

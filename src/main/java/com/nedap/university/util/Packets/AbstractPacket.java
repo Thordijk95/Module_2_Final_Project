@@ -1,14 +1,12 @@
 package com.nedap.university.util.Packets;
 
-import static com.nedap.university.util.DatagramProperties.HEADERSIZE;
+import static com.nedap.university.util.DatagramProperties.HEADER_SIZE;
 
 import com.nedap.university.Requests;
 import com.nedap.university.exceptions.InvalidRequestValue;
 import com.nedap.university.util.ChecksumCalculator;
 import com.nedap.university.util.Conversions;
 import com.nedap.university.util.DatagramProperties;
-import com.nedap.university.util.Util;
-import java.util.regex.PatternSyntaxException;
 
 public abstract class AbstractPacket implements InterfacePacket{
   ChecksumCalculator checksumCalculator = new ChecksumCalculator();
@@ -44,13 +42,13 @@ public abstract class AbstractPacket implements InterfacePacket{
 
   @Override
   public void setHeader(byte[] data) {
-    header = new byte[HEADERSIZE];
-    System.arraycopy(data, 0, header, 0, HEADERSIZE);
+    header = new byte[HEADER_SIZE];
+    System.arraycopy(data, 0, header, 0, HEADER_SIZE-1);
   }
 
   @Override
   public void constructHeader() {
-    header = new byte[HEADERSIZE];
+    header = new byte[HEADER_SIZE];
     // byte 0 - 19 = filename
     byte[] fileNameBytes = fileName.getBytes();
     for (int i = 0; i < fileNameBytes.length; i++) {
@@ -135,8 +133,8 @@ public abstract class AbstractPacket implements InterfacePacket{
   @Override
   public void parseHeader() {
     try {
-      fileName = Conversions.fromByteArrayToString(header, DatagramProperties.FILENAMESIZE, DatagramProperties.FILENAMEOFFSET);
-      fileType = Conversions.fromByteArrayToString(header, DatagramProperties.FILETYPESIZE, DatagramProperties.FILETYPEOFFSET);
+      fileName = Conversions.fromByteArrayToString(header, DatagramProperties.FILENAME_SIZE, DatagramProperties.FILENAME_OFFSET);
+      fileType = Conversions.fromByteArrayToString(header, DatagramProperties.FILE_TYPE_SIZE, DatagramProperties.FILETYPEOFFSET);
       requestType = Requests.byValue((header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0xF));
       firstPacket = (header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x20) != 0;
       acknowledgement = (header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;
@@ -149,6 +147,7 @@ public abstract class AbstractPacket implements InterfacePacket{
 
   @Override
   public boolean isValidPacket() {
+    System.out.println("Validating packet");
     parseHeader();
     if (!Requests.validRequest(requestType.toString())) {
       System.out.println("Request not valid: " + requestType.toString());
@@ -164,6 +163,7 @@ public abstract class AbstractPacket implements InterfacePacket{
       System.out.println("Acknowledgemetn: " + acknowledgement);
       return false;
     }
+    System.out.println("Valid packet");
     return true;
   };
 }

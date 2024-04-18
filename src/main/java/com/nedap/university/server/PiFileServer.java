@@ -2,6 +2,7 @@ package com.nedap.university.server;
 
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.util.CommandHandler.CommandHandler;
+import com.nedap.university.util.DatagramProperties;
 import com.nedap.university.util.Packets.AckPacket;
 import com.nedap.university.util.Packets.InboundPacket;
 import com.nedap.university.util.Packets.InterfacePacket;
@@ -56,7 +57,7 @@ public class PiFileServer {
   private void service() throws IOException, IncorrectArgumentException {
     System.out.println("Starting the Raspberry Pi File Server Service");
     while(true) {
-      DatagramPacket request = new DatagramPacket(new byte[1024], 1024);
+      DatagramPacket request = new DatagramPacket(new byte[DatagramProperties.DATAGRAMSIZE], DatagramProperties.DATAGRAMSIZE);
       System.out.println("Created a file buffer! Now trying to receive request");
       socket.receive(request);
       System.out.println("Received a request on the Raspberry Pi File Server");
@@ -68,28 +69,21 @@ public class PiFileServer {
 
   private void parseRequest(DatagramPacket request)
       throws IOException, IncorrectArgumentException {
-    InterfacePacket inboundPacket = new InboundPacket(request.getData());
-    System.out.println(inboundPacket.isAcknowledgement());
-    System.out.println(inboundPacket.getRequestType());
+    InterfacePacket inboundPacket = new InboundPacket(request);
 
     if (inboundPacket.isValidPacket()) {
       // Acknowledge the packet
       System.out.println("Sending acknowledgement!");
-      InterfacePacket ackPacket = new AckPacket(inboundPacket.getRequestType(), inboundPacket.getSequenceNumber());
-      System.out.println("Request type: "+ackPacket.getRequestType());
-      System.out.println("acknowledgement: " + ackPacket.isAcknowledgement());
-      System.out.println("Ack Data: " + Arrays.toString(ackPacket.getData()));
-      DatagramPacket ackDatagramPacket = new DatagramPacket(ackPacket.getData(), ackPacket.getData().length, request.getAddress(), request.getPort());
-      socket.send(ackDatagramPacket);
-
+      serverCommandHandler.acknowledge(inboundPacket.getRequestType(), inboundPacket.getSequenceNumber(), request.getAddress(), request.getPort());;
 
       if (inboundPacket.isFirstPacket() && !(inboundPacket.getFileName().isEmpty() || inboundPacket.getFileType().isEmpty())) {
         util.removeFile(storageDirectory + inboundPacket.getFileName()+"."+inboundPacket.getFileType());
       }
       // Handle the packet
+      System.out.println("Received " + inboundPacket.getData().length + " bytes of data");
       System.out.println("executing request: " + inboundPacket.getRequestType().toString());
       serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.getFileName()+"."+inboundPacket.getFileType()},
-          request.getAddress(), request.getPort(), request.getData());
+          request.getAddress(), request.getPort(), inboundPacket.getData());
 
     } else {
       System.out.println("Dropped the packet!");

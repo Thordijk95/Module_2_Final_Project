@@ -30,17 +30,17 @@ public class Conversions {
 
   public static String[] fromByteArrayToStringArray(byte[] data, String delimiter) {
     String allFileNames = fromByteArrayToString(data, data.length,0);
-    return allFileNames.split(delimiter);
+    return allFileNames.split(delimiter, -1);
   }
 
   public static byte[] fromArrayListToByteArray(ArrayList<String> list) {
     StringBuilder builder = new StringBuilder();
     for (int i =0 ; i < list.size() ; i++) {
-      builder.append(list.get(i) + DatagramProperties.SEPERATOR);
+      builder.append(list.get(i) + DatagramProperties.SEPARATOR);
     }
     // Three separators indicate end of the data
-    builder.append(DatagramProperties.SEPERATOR);
-    builder.append(DatagramProperties.SEPERATOR);
+    builder.append(DatagramProperties.SEPARATOR);
+    builder.append(DatagramProperties.SEPARATOR);
     return builder.toString().getBytes();
   }
 
