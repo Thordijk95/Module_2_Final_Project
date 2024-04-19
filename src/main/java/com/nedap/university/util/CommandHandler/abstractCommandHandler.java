@@ -4,16 +4,14 @@ import com.nedap.university.Requests;
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.util.Packets.AckPacket;
 import com.nedap.university.util.Packets.InterfacePacket;
-import com.nedap.university.util.SlidingWindow;
+import com.nedap.university.util.Window.SlidingWindow;
 import com.nedap.university.util.Timeout;
 import com.nedap.university.util.Util;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Timer;
 
 public abstract class abstractCommandHandler implements CommandHandler {
 

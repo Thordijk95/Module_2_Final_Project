@@ -1,4 +1,4 @@
-package com.nedap.university.util;
+package com.nedap.university.util.Window;
 
 import java.net.DatagramPacket;
 import java.util.ArrayList;
@@ -21,6 +21,10 @@ public class SlidingWindow {
 
   public ArrayList<DatagramPacket> getAcknowledgedPackets() {
     return acknowledgedPackets;
+  }
+
+  public void sender() {
+
   }
 
 }

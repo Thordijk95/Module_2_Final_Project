@@ -1,6 +1,6 @@
 package com.nedap.university.util;
 
-import com.nedap.university.util.CommandHandler.CommandHandler;
+import com.nedap.university.util.Window.SlidingWindow;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
