@@ -1,8 +1,8 @@
-package com.nedap.university.util.Packets;
+package com.nedap.university.Packets;
 
 import static com.nedap.university.util.DatagramProperties.HEADER_SIZE;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
 
 public class AckPacket extends AbstractPacket {
 

@@ -1,6 +1,6 @@
 package com.nedap.university.util;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -97,7 +97,11 @@ public class Util {
 
   public byte[] lastPacketInList(byte[] packet, ArrayList<byte[]> packetList ) {
     if (Arrays.equals(packetList.get(packetList.size() - 1), packet)) {
-      packet = (Conversions.fromByteArrayToString(packet, packet.length, 0) + ";").getBytes();
+      byte[] newPacket = new byte[packet.length+1];
+      byte[] closingByte = new byte[] {0x03};
+      System.arraycopy(packet, 0, newPacket, 0, packet.length);
+      System.arraycopy(closingByte, 0, newPacket, packet.length, 1);
+      packet = newPacket;
     }
     return packet;
   }

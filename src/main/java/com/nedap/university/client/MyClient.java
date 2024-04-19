@@ -1,7 +1,7 @@
 package com.nedap.university.client;
 
-import com.nedap.university.util.CommandHandler.ClientCommandHandler;
-import com.nedap.university.util.CommandHandler.CommandHandler;
+import com.nedap.university.CommandHandler.ClientCommandHandler;
+import com.nedap.university.CommandHandler.CommandHandler;
 import com.nedap.university.util.Util;
 import java.io.IOException;
 import java.net.DatagramSocket;

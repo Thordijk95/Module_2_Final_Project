@@ -1,19 +1,22 @@
-package com.nedap.university.util.Packets;
+package com.nedap.university.Packets;
 
 import static com.nedap.university.util.DatagramProperties.HEADER_SIZE;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
 import com.nedap.university.util.Util;
+import java.net.InetAddress;
 import java.util.regex.PatternSyntaxException;
 
 public class OutboundPacket extends AbstractPacket{
 
   // Create an outbound packet with header and data to send
-  public OutboundPacket(Requests requestType, boolean firstPacket, boolean acknowledgement, int sequenceNumber, String fileName, byte[] data) {
+  public OutboundPacket(InetAddress address, int port, Requests requestType, boolean firstPacket, boolean acknowledgement, int sequenceNumber, String fileName, byte[] data) {
     setRequestType(requestType);
     setFirstPacket(firstPacket);
     setAcknowledgement(acknowledgement);
     setSequenceNumber(sequenceNumber);
+    setAddress(address);
+    setPort(port);
     try {
       if (Util.fileNameRequired(requestType)) {
         String[] file = fileName.split("\\.");

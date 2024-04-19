@@ -1,10 +1,11 @@
-package com.nedap.university.util.CommandHandler;
+package com.nedap.university.CommandHandler;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.ReceiveWindow;
+import com.nedap.university.Communication.Requests;
 import com.nedap.university.exceptions.IncorrectArgumentException;
-import com.nedap.university.util.Packets.AckPacket;
-import com.nedap.university.util.Packets.InterfacePacket;
-import com.nedap.university.util.Window.SlidingWindow;
+import com.nedap.university.Packets.AckPacket;
+import com.nedap.university.Packets.InterfacePacket;
+import com.nedap.university.Communication.SlidingWindow;
 import com.nedap.university.util.Timeout;
 import com.nedap.university.util.Util;
 import java.io.IOException;
@@ -12,19 +13,20 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
-
 public abstract class abstractCommandHandler implements CommandHandler {
 
   DatagramSocket socket;
   Util util;
   Timeout timeout;
   SlidingWindow slidingWindow;
+  ReceiveWindow receivingWindow;
   String storageDirectory;
 
   public abstractCommandHandler(DatagramSocket socket, String storageDirectory){
     this.socket = socket;
     util = new Util();
     slidingWindow = new SlidingWindow();
+    receivingWindow = new ReceiveWindow();
     timeout = new Timeout(slidingWindow);
     this.storageDirectory = storageDirectory;
   }

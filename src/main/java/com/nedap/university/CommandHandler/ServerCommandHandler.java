@@ -1,13 +1,13 @@
-package com.nedap.university.util.CommandHandler;
+package com.nedap.university.CommandHandler;
 
 import static com.nedap.university.util.DatagramProperties.DATA_SIZE;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
 import com.nedap.university.util.Conversions;
-import com.nedap.university.util.Packets.ErrorPacket;
-import com.nedap.university.util.Packets.InboundPacket;
-import com.nedap.university.util.Packets.InterfacePacket;
-import com.nedap.university.util.Packets.OutboundPacket;
+import com.nedap.university.Packets.ErrorPacket;
+import com.nedap.university.Packets.InboundPacket;
+import com.nedap.university.Packets.InterfacePacket;
+import com.nedap.university.Packets.OutboundPacket;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -32,7 +32,7 @@ public class ServerCommandHandler extends abstractCommandHandler{
     int sequenceNumber = 0;
     for (byte[] packet : dataList) {
       packet = util.lastPacketInList(packet, dataList);
-      InterfacePacket outboundPacket = new OutboundPacket(Requests.LIST, firstPacket, false, sequenceNumber,
+      InterfacePacket outboundPacket = new OutboundPacket(hostname, port, Requests.LIST, firstPacket, false, sequenceNumber,
           "", packet);
       DatagramPacket datagramPacket = new DatagramPacket(outboundPacket.getData(),
           outboundPacket.getData().length, hostname, port);
@@ -65,13 +65,13 @@ public class ServerCommandHandler extends abstractCommandHandler{
         System.out.println("Creating packet " + (sequenceNumber+1) +":" + dataList.size() );
         packet = util.lastPacketInList(packet, dataList); // Adds a closure symbol ";;" to the data if it is the last packet
         System.out.println("1");
-        InterfacePacket outboundPacket = new OutboundPacket(Requests.DOWNLOAD, firstPacket, false, sequenceNumber, fileName, packet);
+        InterfacePacket outboundPacket = new OutboundPacket(hostname, port, Requests.DOWNLOAD, firstPacket, false, sequenceNumber, fileName, packet);
         System.out.println("2");
         DatagramPacket outboundDatagramPacket = new DatagramPacket(outboundPacket.getData(), outboundPacket.getData().length, hostname, port);
         System.out.println("3");
         socket.send(outboundDatagramPacket);
         System.out.println("4");
-        timeout.createTimer(outboundDatagramPacket, new Timer(), socket);
+        timeout.createTimer(outboundPacket, new Timer(), socket);
         System.out.println("Packet sent");
         firstPacket = false;
         sequenceNumber++;
@@ -83,7 +83,7 @@ public class ServerCommandHandler extends abstractCommandHandler{
         InterfacePacket inboundPacket = new InboundPacket(ackDatagramPacket);
         if (inboundPacket.isAcknowledgement() && inboundPacket.getSequenceNumber()==outboundPacket.getSequenceNumber()) {
           System.out.println("Succesfully acknowledged a packet");
-          slidingWindow.addAcknowledgedPacket(outboundDatagramPacket);
+          slidingWindow.addAcknowledgedPacket(inboundPacket);
         }
       }
 

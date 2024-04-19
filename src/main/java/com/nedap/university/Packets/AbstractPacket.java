@@ -1,12 +1,13 @@
-package com.nedap.university.util.Packets;
+package com.nedap.university.Packets;
 
 import static com.nedap.university.util.DatagramProperties.HEADER_SIZE;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
 import com.nedap.university.exceptions.InvalidRequestValue;
 import com.nedap.university.util.ChecksumCalculator;
 import com.nedap.university.util.Conversions;
 import com.nedap.university.util.DatagramProperties;
+import java.net.InetAddress;
 
 public abstract class AbstractPacket implements InterfacePacket{
   ChecksumCalculator checksumCalculator = new ChecksumCalculator();
@@ -19,6 +20,9 @@ public abstract class AbstractPacket implements InterfacePacket{
   private int sequenceNumber;
   private String fileName;
   private String fileType;
+
+  private InetAddress address;
+  private int port;
 
   private boolean validPacket() {
     return false;
@@ -128,6 +132,26 @@ public abstract class AbstractPacket implements InterfacePacket{
   @Override
   public String getFileType() {
     return fileType;
+  };
+
+  @Override
+  public void setAddress(InetAddress address) {
+    this.address = address;
+  }
+
+  @Override
+  public InetAddress getAddress() {
+    return address;
+  };
+
+  @Override
+  public void setPort(int port) {
+    this.port = port;
+  };
+
+  @Override
+  public int getPort(){
+    return port;
   };
 
   @Override

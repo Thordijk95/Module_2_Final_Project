@@ -1,4 +1,4 @@
-package com.nedap.university;
+package com.nedap.university.Communication;
 
 import com.nedap.university.exceptions.InvalidRequestValue;
 

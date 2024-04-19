@@ -1,6 +1,6 @@
-package com.nedap.university.util.Packets;
+package com.nedap.university.Packets;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
 
 public class EmptyPacket extends AbstractPacket {
   // Create an empty packet

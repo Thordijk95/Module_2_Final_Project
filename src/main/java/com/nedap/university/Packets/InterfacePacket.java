@@ -1,6 +1,7 @@
-package com.nedap.university.util.Packets;
+package com.nedap.university.Packets;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
+import java.net.InetAddress;
 
 public interface InterfacePacket {
 
@@ -37,6 +38,14 @@ public interface InterfacePacket {
   void setFileType(String fileType);
 
   String getFileType();
+
+  void setAddress(InetAddress address);
+
+  InetAddress getAddress();
+
+  void setPort(int port);
+
+  int getPort();
 
   void parseHeader();
 

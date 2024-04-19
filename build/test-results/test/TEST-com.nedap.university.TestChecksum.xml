@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.nedap.university.TestChecksum" tests="2" skipped="0" failures="0" errors="0" timestamp="2024-04-17T12:38:14" hostname="NAC41597" time="0.012">
-  <properties/>
-  <testcase name="testChecksumCalculator()" classname="com.nedap.university.TestChecksum" time="0.011"/>
-  <testcase name="testOnesComplement()" classname="com.nedap.university.TestChecksum" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

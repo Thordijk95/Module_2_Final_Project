@@ -1,7 +1,5 @@
 package com.nedap.university.util;
 
-import com.nedap.university.Requests;
-
 public class ChecksumCalculator {
 
   public int checksumCalculator(int sourcePort, int destinationPort, int fieldLength, int info) {

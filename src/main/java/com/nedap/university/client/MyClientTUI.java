@@ -1,7 +1,7 @@
 package com.nedap.university.client;
 
 import com.nedap.university.exceptions.IncorrectArgumentException;
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -25,7 +25,7 @@ public class MyClientTUI {
             "Please provide the address/hostname where to connect to the file server: (default = 172.16.1.1)");
         String hostname = input.nextLine();
         hostname = "172.16.1.1";
-        System.out.println("Provide the well known port of the server: (default = 8080");
+        System.out.println("Provide the well known port of the server: (default = 8080)");
         String port = input.nextLine();
         port = "8080";
         myClient = new MyClient(new String[] {hostname, port});

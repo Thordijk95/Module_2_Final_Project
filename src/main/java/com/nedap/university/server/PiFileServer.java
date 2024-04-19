@@ -1,21 +1,17 @@
 package com.nedap.university.server;
 
 import com.nedap.university.exceptions.IncorrectArgumentException;
-import com.nedap.university.util.CommandHandler.CommandHandler;
+import com.nedap.university.CommandHandler.CommandHandler;
 import com.nedap.university.util.DatagramProperties;
-import com.nedap.university.util.Packets.AckPacket;
-import com.nedap.university.util.Packets.InboundPacket;
-import com.nedap.university.util.Packets.InterfacePacket;
-import com.nedap.university.util.Packets.OutboundPacket;
-import com.nedap.university.util.Packets.Packet;
-import com.nedap.university.util.CommandHandler.ServerCommandHandler;
+import com.nedap.university.Packets.InboundPacket;
+import com.nedap.university.Packets.InterfacePacket;
+import com.nedap.university.CommandHandler.ServerCommandHandler;
 import com.nedap.university.util.Util;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -40,7 +36,6 @@ public class PiFileServer {
     if (args.length < 3) {
       System.out.println("Syntax error: PiFileServer <port>, <headersize> <datagramsize>");
     }
-
     try {
       PiFileServer server = new PiFileServer(args[0], args[1], args[2]);
       System.out.println("Started the Raspberry Pi File Server on port " + args[0]);
@@ -51,7 +46,6 @@ public class PiFileServer {
     } catch (IOException | IncorrectArgumentException e) {
       System.out.println(e.getMessage());
     }
-
   }
 
   private void service() throws IOException, IncorrectArgumentException {
@@ -63,8 +57,6 @@ public class PiFileServer {
       System.out.println("Received a request on the Raspberry Pi File Server");
       parseRequest(request);
     }
-
-
   }
 
   private void parseRequest(DatagramPacket request)

@@ -1,6 +1,6 @@
-package com.nedap.university.util.CommandHandler;
+package com.nedap.university.CommandHandler;
 
-import com.nedap.university.Requests;
+import com.nedap.university.Communication.Requests;
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import java.io.IOException;
 import java.net.InetAddress;
