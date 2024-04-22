@@ -33,15 +33,23 @@ public class Conversions {
     return allFileNames.split(delimiter, -1);
   }
 
-  public static byte[] fromArrayListToByteArray(ArrayList<String> list) {
+  public static byte[] fromFileListToByteArray(ArrayList<String> list) {
     StringBuilder builder = new StringBuilder();
     for (int i =0 ; i < list.size() ; i++) {
       builder.append(list.get(i) + DatagramProperties.SEPARATOR);
     }
-    // Three separators indicate end of the data
-    builder.append(DatagramProperties.SEPARATOR);
-    builder.append(DatagramProperties.SEPARATOR);
     return builder.toString().getBytes();
+  }
+
+  public static byte[] fromDataListToByteArray(ArrayList<byte[]> list) {
+    byte[] allBytes = new byte[0];
+    for (byte[] bytes : list) {
+      byte[] temp = allBytes;
+      allBytes = new byte[bytes.length + allBytes.length];
+      System.arraycopy(temp, 0, allBytes, 0, temp.length);
+      System.arraycopy(bytes, 0, allBytes, temp.length, bytes.length);
+    }
+    return allBytes;
   }
 
 }

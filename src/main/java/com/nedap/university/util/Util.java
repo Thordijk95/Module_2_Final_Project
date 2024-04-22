@@ -26,6 +26,7 @@ public class Util {
       dataList.add(tmpData);
       dataPointer += Math.min(data.length-dataPointer, DatagramProperties.DATA_SIZE);
     }
+    System.out.println("I have split the data");
     return dataList;
   }
 
@@ -104,5 +105,32 @@ public class Util {
       packet = newPacket;
     }
     return packet;
+  }
+
+  public boolean isLastPacket(byte[] packet) {
+    String data = Conversions.fromByteArrayToString(packet, packet.length, 0);
+    String[] dataStrings = data.split(";", -1);
+    return dataStrings[dataStrings.length-1].equals("");
+  }
+
+  public static boolean isValidCommand(String command) {
+    String[] commandParts = command.split(" ");
+    if (commandParts.length != 2) {
+      return false;
+    }
+    if (Requests.validRequest(commandParts[0])) {
+      return validFileName(commandParts[1]);
+    }
+    return false;
+  }
+
+  public static boolean validFileName(String fileName) {
+    try {
+      String[] fileParts = fileName.split("\\.");
+      return !(fileParts.length != 2 || fileParts[0].isEmpty() || fileParts[1].isEmpty());
+    } catch (Exception e) {
+      System.out.println("Provided filename syntax is incorrect: <filename>.<filetype> required");
+      return false;
+    }
   }
 }

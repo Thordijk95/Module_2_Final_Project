@@ -23,6 +23,10 @@ public interface InterfacePacket {
 
   boolean isFirstPacket();
 
+  void setLastPacket(boolean lastPacket);
+
+  boolean isLastPacket();
+
   void setAcknowledgement(boolean acknowledgement);
 
   boolean isAcknowledgement();

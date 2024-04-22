@@ -1,6 +1,6 @@
 package com.nedap.university.util;
 
-import com.nedap.university.Communication.SlidingWindow;
+import com.nedap.university.Communication.Window;
 import com.nedap.university.Packets.InterfacePacket;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -11,11 +11,11 @@ import java.util.TimerTask;
 public class Timeout {
 
   DatagramSocket socket;
-  SlidingWindow slidingWindow;
+  Window window;
 
 
-  public Timeout(SlidingWindow sw) {
-    slidingWindow = sw;
+  public Timeout(Window window) {
+    this.window = window;
   }
 
   public void createTimer(InterfacePacket tag, Timer timer, DatagramSocket socket) {
@@ -33,10 +33,9 @@ public class Timeout {
   }
 
   private void TimeoutElapsed(InterfacePacket tag) throws IOException {
-    if (slidingWindow.getAcknowledgedPackets().contains(tag)) {
-      slidingWindow.removeAcknowledgedPacket(tag);
+    if (window.getAcknowledgedPackets().contains(tag)) {
+      window.removeAcknowledgedPacket(tag);
     } else {
-      System.out.println("Sending from timeout!!!");
       DatagramPacket newDatagram = new DatagramPacket(tag.getData(), tag.getData().length, tag.getAddress(), tag.getPort());
       socket.send(newDatagram);
       createTimer(tag, new Timer(), socket);

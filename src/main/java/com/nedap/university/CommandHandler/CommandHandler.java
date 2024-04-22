@@ -13,7 +13,7 @@ public interface CommandHandler {
 
   void upload(String fileName, byte[] data) throws IOException;
 
-  void download(String fileName, InetAddress hostname, int port) throws IOException;
+  byte[]  download(String fileName, InetAddress hostname, int port) throws IOException;
 
   void remove(String fileName) throws IOException;
 

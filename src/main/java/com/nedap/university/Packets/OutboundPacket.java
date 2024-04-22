@@ -18,11 +18,12 @@ public class OutboundPacket extends AbstractPacket{
     setAddress(address);
     setPort(port);
     try {
-      if (Util.fileNameRequired(requestType)) {
+      if (Util.fileNameRequired(requestType) && Util.validFileName(fileName)) {
         String[] file = fileName.split("\\.");
         setFileName(file[0]);
         setFileType(file[1]);
       } else {
+        System.out.println("Filename empty! " + fileName);
         setFileName("");
         setFileType("");
       }

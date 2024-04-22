@@ -2,7 +2,9 @@ package com.nedap.university.CommandHandler;
 
 import static com.nedap.university.util.DatagramProperties.DATA_SIZE;
 
+import com.nedap.university.Communication.ReceiveWindow;
 import com.nedap.university.Communication.Requests;
+import com.nedap.university.util.Conversions;
 import com.nedap.university.util.DatagramProperties;
 import com.nedap.university.Packets.ConnectionPacket;
 import com.nedap.university.Packets.InboundPacket;
@@ -28,20 +30,24 @@ public class ClientCommandHandler extends abstractCommandHandler{
   }
 
   @Override
-  public void getList(InetAddress ignored_address, int ignored_port) throws IOException {
+  public void getList(InetAddress address, int port) throws IOException {
     System.out.println("Retrieving list from server");
-    // sent the request to get the list
+    // send the request to get the list
     InterfacePacket outboundPacket = new OutboundPacket(address, port, Requests.LIST, true, false, 0, "", new byte[1]);
     DatagramPacket outboundDatagramPacket = new DatagramPacket(outboundPacket.getData(), outboundPacket.getData().length, address, port);
     socket.send(outboundDatagramPacket);
 
-    DatagramPacket ackDatagramPacket = new DatagramPacket(new byte[DatagramProperties.DATAGRAMSIZE], DatagramProperties.DATAGRAMSIZE);
-    socket.receive(ackDatagramPacket);
-    InterfacePacket ackPacket = new InboundPacket(ackDatagramPacket);
+    // Wait for an acknowledgement packet for the request
+    InterfacePacket ackPacket = receivingWindow.receive(socket);
     if (ackPacket.isAcknowledgement()) {
       System.out.println("Received acknowledgement for list request, waiting for list!");
-      slidingWindow.addAcknowledgedPacket(ackPacket);
-      receivingWindow.receiver(socket, Requests.LIST);
+      receivingWindow.addAcknowledgedPacket(ackPacket);
+      // Start receiving the list data
+      byte[] data = receivingWindow.receiver(socket, address, port, Requests.LIST);
+
+      String dataString = Conversions.fromByteArrayToString(data, data.length, 0);
+      System.out.println(dataString);
+
     } else {
       System.out.println("Request was not acknowledged");
     }
@@ -54,40 +60,27 @@ public class ClientCommandHandler extends abstractCommandHandler{
     byte[] data = util.loadFile(storageDirectory + "/" + fileName);
     ArrayList<byte[]> dataList = util.splitData(data);
     // start the sending segment
-    slidingWindow.sender(socket, address, port, Requests.UPLOAD, timeout,  dataList, fileName);
+    slidingWindow.sender(socket, address, port, Requests.UPLOAD, dataList, fileName);
     System.out.println("upload finished!");
   }
 
   @Override
-  public void download(String fileName, InetAddress ignoredHostname, int ignoredPort) throws IOException {
+  public byte[] download(String fileName, InetAddress address, int port) throws IOException {
     System.out.println("Downloading file: " + fileName + " from server");
-    InterfacePacket outBoundPacket =
+    // send the download request
+    InterfacePacket downloadRequestPacket =
         new OutboundPacket(address, port, Requests.DOWNLOAD, false, false, 0, fileName, new byte[1]);
-    DatagramPacket datagramPacket =
-        new DatagramPacket(outBoundPacket.getData(), outBoundPacket.getData().length, address, port);
-    socket.send(datagramPacket);
-    timeout.createTimer(outBoundPacket, new Timer(), socket);
-    while(true) {
-      // wait for an acknowledgement
-      DatagramPacket ackDatagramPacket = new DatagramPacket(new byte[1024], 1024);
-      socket.receive(ackDatagramPacket);
-      InterfacePacket ackPacket = new InboundPacket(ackDatagramPacket);
-      if (ackPacket.isAcknowledgement() && ackPacket.getRequestType() == Requests.DOWNLOAD) {
-          slidingWindow.addAcknowledgedPacket(ackPacket);
-          while(true) {
-            // Start receiving the file
-            DatagramPacket downloadDatagramPacket = new DatagramPacket(new byte[DATA_SIZE],
-                DATA_SIZE);
-            socket.receive(downloadDatagramPacket);
-            InterfacePacket downloadPacket = new InboundPacket(downloadDatagramPacket);
-            acknowledge(downloadPacket.getRequestType(), downloadPacket.getSequenceNumber(), downloadDatagramPacket.getAddress(), downloadDatagramPacket.getPort());
-            if (downloadPacket.isFirstPacket() && !(downloadPacket.getFileName().isEmpty() || downloadPacket.getFileType().isEmpty())) {
-              util.removeFile(storageDirectory + downloadPacket.getFileName()+"."+downloadPacket.getFileType());
-            }
-            util.safeFile(storageDirectory + downloadPacket.getFileName()+"."+downloadPacket.getFileType(), downloadPacket.getData());
-          }
-      }
+    slidingWindow.sendPacket(socket, address, port, downloadRequestPacket);
+    // wait for an acknowledgement of the request
+    InterfacePacket ackPacket = slidingWindow.receive(socket);
+    if (ackPacket.isAcknowledgement() && ackPacket.isValidPacket()) {
+      slidingWindow.addAcknowledgedPacket(downloadRequestPacket);
+      // start the receiver to receive the incoming file
+      byte[] data = receivingWindow.receiver(socket, address, port, Requests.DOWNLOAD);
+      util.safeFile(storageDirectory+"/"+fileName, data);
+
     }
+    return null;
   }
 
   @Override
@@ -101,17 +94,17 @@ public class ClientCommandHandler extends abstractCommandHandler{
   }
 
   @Override
-  public boolean testConnectionAtRunTime(InetAddress hostname, int port) throws IOException, InterruptedException {
+  public boolean testConnectionAtRunTime(InetAddress address, int port) throws IOException, InterruptedException {
     InterfacePacket packet = new ConnectionPacket();
-    DatagramPacket datagramPacket = new DatagramPacket(packet.getData(), packet.getData().length-1, hostname, port);
+    DatagramPacket datagramPacket = new DatagramPacket(packet.getData(), packet.getData().length-1, address, port);
     System.out.println("Sending data gram");
-    slidingWindow.send(socket, hostname, port, Requests.CONNECT, timeout, packet.isFirstPacket(),
-        packet.isAcknowledgement(), packet.getSequenceNumber(), packet.getFileName(), packet.getData());
+    slidingWindow.sendPacket(socket, address, port, packet);
     byte[] response = new byte[512];
     DatagramPacket responsePacket = new DatagramPacket(response, response.length);
     socket.receive(responsePacket);
     InterfacePacket inboundPacket = new InboundPacket(responsePacket);
-    slidingWindow.verifyAcknowledgement(inboundPacket);
+    inboundPacket.isValidPacket();
+    slidingWindow.addAcknowledgedPacket(packet);
     return responsePacket.getLength() > 0;
   }
 

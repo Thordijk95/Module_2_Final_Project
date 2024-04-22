@@ -1,5 +1,8 @@
 package com.nedap.university.Communication;
 
+import com.nedap.university.Packets.AbstractPacket;
+import com.nedap.university.Packets.AckPacket;
+import com.nedap.university.Packets.ClosingPacket;
 import com.nedap.university.util.DatagramProperties;
 import com.nedap.university.Packets.InboundPacket;
 import com.nedap.university.Packets.InterfacePacket;
@@ -13,7 +16,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Timer;
 
-public class SlidingWindow {
+public class SlidingWindow extends AbstractWindow {
 
   final int maxSeqNum = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2), (DatagramProperties.SEQUENCE_NUMBER_SIZE*8));
   final int SWS = maxSeqNum/2;
@@ -22,26 +25,37 @@ public class SlidingWindow {
   int LFS;
 
   ArrayList<InterfacePacket> slidingWindowPackets;
-  ArrayList<InterfacePacket> acknowledgedPackets;
 
   Util util;
 
-  public SlidingWindow() {
-    acknowledgedPackets = new ArrayList<>();
+  public SlidingWindow(String directory) {
+    super(directory);
     slidingWindowPackets = new ArrayList<>();
     util = new Util();
   }
 
-  public void addAcknowledgedPacket(InterfacePacket packet) {
-    acknowledgedPackets.add(packet);
+  @Override
+  public void send(DatagramSocket socket, InetAddress address, int port, Requests requestType,
+      boolean first, boolean ack, int packetCounter, String filename, byte[] dataPacket) throws IOException {
+    InterfacePacket outboundPacket =
+        new OutboundPacket(address, port, requestType, first, false, packetCounter, filename, dataPacket);
+    sendPacket(socket, address, port, outboundPacket);
   }
 
-  public void removeAcknowledgedPacket(InterfacePacket packet) {
-    acknowledgedPackets.remove(packet);
-  }
+  @Override
+  public void sendPacket(DatagramSocket socket, InetAddress address, int port, InterfacePacket packet) throws IOException {
+    DatagramPacket outboundDatagram
+        = new DatagramPacket(packet.getData(), packet.getData().length, address, port);
+    socket.send(outboundDatagram);
+    timeout.createTimer(packet, new Timer(), socket);
+    slidingWindowPackets.add(packet);
+  };
 
-  public ArrayList<InterfacePacket> getAcknowledgedPackets() {
-    return acknowledgedPackets;
+  @Override
+  public InterfacePacket receive(DatagramSocket socket) throws IOException {
+    DatagramPacket datagramPacket = new DatagramPacket(new byte[DatagramProperties.DATAGRAMSIZE], DatagramProperties.DATAGRAMSIZE);
+    socket.receive(datagramPacket);
+    return new InboundPacket(datagramPacket);
   }
 
   public void verifyAcknowledgement(InterfacePacket ackPacket) {
@@ -49,7 +63,6 @@ public class SlidingWindow {
     for (InterfacePacket packet : slidingWindowPackets) {
       if (packet.getSequenceNumber() == ackPacket.getSequenceNumber() && ackPacket.isAcknowledgement()
           && packet.getRequestType() == ackPacket.getRequestType()) {
-        System.out.println("Succesfully acknowledged packet: " + ackPacket.getSequenceNumber());
         addAcknowledgedPacket(packet);
         LAF = packet.getSequenceNumber();
       }
@@ -68,42 +81,33 @@ public class SlidingWindow {
     }
   }
 
-  public void send(DatagramSocket socket, InetAddress address, int port, Requests requestType, Timeout timeout, boolean first, boolean ack, int packetCounter,
-      String filename, byte[] dataPacket) throws IOException {
-    InterfacePacket outboundPacket =
-        new OutboundPacket(address, port, requestType, first, false, packetCounter, filename, dataPacket);
-    DatagramPacket outboundDatagramPacket
-        = new DatagramPacket(outboundPacket.getData(), outboundPacket.getData().length-1, address, port);
-    socket.send(outboundDatagramPacket);
-    timeout.createTimer(outboundPacket, new Timer(), socket);
-    LFS = outboundPacket.getSequenceNumber();
-    slidingWindowPackets.add(outboundPacket);
-  }
 
-  public void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType, Timeout timeout, ArrayList<byte[]> dataList, String filename) throws IOException {
+  @Override
+  public void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType, ArrayList<byte[]> dataList, String filename) throws IOException {
     int packetCount = dataList.size();
-    int packetCounter = 0;
+    int sequenceNumber = 0;
     boolean first = true;
     for (byte[] dataPacket : dataList) {
-      if (inSendWindow(packetCounter)) {
+      if (inSendWindow(sequenceNumber)) {
         dataPacket = util.lastPacketInList(dataPacket, dataList);
-        System.out.println("Sending packet " + (packetCounter+1) + ": " + packetCount);
-        send(socket, address, port, requestType, timeout, first, false, packetCounter, filename, dataPacket);
-        packetCounter++;
+        send(socket, address, port, requestType, first, false, sequenceNumber, filename, dataPacket);
+        LFS = sequenceNumber;
+        sequenceNumber++;
         first = false;
-
-        byte[] buffer = new byte[DatagramProperties.DATAGRAMSIZE];
-        DatagramPacket response = new DatagramPacket(buffer, buffer.length);
-        socket.receive(response);
-        InterfacePacket inboundPacket = new InboundPacket(response);
-        verifyAcknowledgement(inboundPacket);
+        verifyAcknowledgement(receive(socket));
       }
-
-
-      if (packetCounter == Math.pow(2,8)) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
-        packetCounter = 0;
+      if (sequenceNumber == Math.pow(2,8)) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
+        sequenceNumber = 0;
       }
     }
+    sendPacket(socket, address, port, new ClosingPacket(requestType));
+  }
+
+  @Override
+  public byte[] receiver(DatagramSocket socket, InetAddress address, int port,
+      Requests requestsType) throws IOException {
+    // Should not be used
+    return null;
   }
 
 }

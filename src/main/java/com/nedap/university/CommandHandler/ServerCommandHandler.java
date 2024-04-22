@@ -22,76 +22,39 @@ public class ServerCommandHandler extends abstractCommandHandler{
   }
 
   @Override
-  public void getList(InetAddress hostname, int port) throws IOException {
+  public void getList(InetAddress address, int port) throws IOException {
     System.out.println(storageDirectory);
     ArrayList<String> fileList = util.getFileList(storageDirectory);
     System.out.println(fileList);
-    byte[] data = Conversions.fromArrayListToByteArray(fileList);
+    byte[] data = Conversions.fromFileListToByteArray(fileList);
     ArrayList<byte[]> dataList = util.splitData(data);
     boolean firstPacket = true;
     int sequenceNumber = 0;
-    for (byte[] packet : dataList) {
-      packet = util.lastPacketInList(packet, dataList);
-      InterfacePacket outboundPacket = new OutboundPacket(hostname, port, Requests.LIST, firstPacket, false, sequenceNumber,
-          "", packet);
-      DatagramPacket datagramPacket = new DatagramPacket(outboundPacket.getData(),
-          outboundPacket.getData().length, hostname, port);
-      socket.send(datagramPacket);
-      firstPacket = false;
-
-      byte[] buffer = new byte[1024];
-      DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
-      socket.receive(receivedPacket);
-    }
-
+    slidingWindow.sender(socket, address, port, Requests.LIST, dataList, "");
   }
 
   // A file is uploaded to the serevr
   @Override
   public void upload(String filePath, byte[] data) throws IOException {
+    System.out.println("Saving the file");
     util.safeFile(storageDirectory + filePath, data);
   }
 
   // A file is downloaded from the server
   @Override
-  public void download(String fileName, InetAddress hostname, int port) throws IOException{
+  public byte[] download(String fileName, InetAddress address, int port) throws IOException{
     System.out.println("Loading file: " + fileName);
     try {
+      // Load the file
       byte[] data = util.loadFile(storageDirectory + fileName);
       ArrayList<byte[]> dataList = util.splitData(data);
-      boolean firstPacket = true;
-      int sequenceNumber = 0;
-      for (byte[] packet : dataList) {
-        System.out.println("Creating packet " + (sequenceNumber+1) +":" + dataList.size() );
-        packet = util.lastPacketInList(packet, dataList); // Adds a closure symbol ";;" to the data if it is the last packet
-        System.out.println("1");
-        InterfacePacket outboundPacket = new OutboundPacket(hostname, port, Requests.DOWNLOAD, firstPacket, false, sequenceNumber, fileName, packet);
-        System.out.println("2");
-        DatagramPacket outboundDatagramPacket = new DatagramPacket(outboundPacket.getData(), outboundPacket.getData().length, hostname, port);
-        System.out.println("3");
-        socket.send(outboundDatagramPacket);
-        System.out.println("4");
-        timeout.createTimer(outboundPacket, new Timer(), socket);
-        System.out.println("Packet sent");
-        firstPacket = false;
-        sequenceNumber++;
-
-        DatagramPacket ackDatagramPacket = new DatagramPacket(new byte[DATA_SIZE],
-            DATA_SIZE);
-        System.out.println("Waiting for ACK");
-        socket.receive(ackDatagramPacket);
-        InterfacePacket inboundPacket = new InboundPacket(ackDatagramPacket);
-        if (inboundPacket.isAcknowledgement() && inboundPacket.getSequenceNumber()==outboundPacket.getSequenceNumber()) {
-          System.out.println("Succesfully acknowledged a packet");
-          slidingWindow.addAcknowledgedPacket(inboundPacket);
-        }
-      }
-
+      // Use the sliding window to send the data
+      slidingWindow.sender(socket, address, port, Requests.DOWNLOAD, dataList, fileName );
     } catch (IOException e) {
       System.out.println(e.getMessage());
       InterfacePacket errorPacket = new ErrorPacket();
     }
-
+     return null;
   }
 
   @Override

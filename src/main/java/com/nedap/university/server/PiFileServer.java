@@ -21,14 +21,14 @@ public class PiFileServer {
   private Random random;
 
   static String storageDirectory = "/home/pi/PiFileServerStorageDirectory/";
-
+  static String localStorageDirectory = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/PiSpoofDir/";
   CommandHandler serverCommandHandler;
   Util util;
 //
 
   public PiFileServer(int port, int headersize, int datagramsize) throws SocketException {
       socket = new DatagramSocket(port);
-      serverCommandHandler = new ServerCommandHandler(socket, storageDirectory);
+      serverCommandHandler = new ServerCommandHandler(socket, localStorageDirectory);
       util = new Util();
   }
 
@@ -62,14 +62,13 @@ public class PiFileServer {
   private void parseRequest(DatagramPacket request)
       throws IOException, IncorrectArgumentException {
     InterfacePacket inboundPacket = new InboundPacket(request);
-
+    System.out.println("Filename= "+inboundPacket.getFileName());
     if (inboundPacket.isValidPacket()) {
       // Acknowledge the packet
-      System.out.println("Sending acknowledgement!");
       serverCommandHandler.acknowledge(inboundPacket.getRequestType(), inboundPacket.getSequenceNumber(), request.getAddress(), request.getPort());;
 
       if (inboundPacket.isFirstPacket() && !(inboundPacket.getFileName().isEmpty() || inboundPacket.getFileType().isEmpty())) {
-        util.removeFile(storageDirectory + inboundPacket.getFileName()+"."+inboundPacket.getFileType());
+        util.removeFile(localStorageDirectory + inboundPacket.getFileName()+"."+inboundPacket.getFileType());
       }
       // Handle the packet
       System.out.println("Received " + inboundPacket.getData().length + " bytes of data");
@@ -80,7 +79,5 @@ public class PiFileServer {
     } else {
       System.out.println("Dropped the packet!");
     }
-
   }
-
 }

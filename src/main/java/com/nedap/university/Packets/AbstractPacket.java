@@ -16,6 +16,7 @@ public abstract class AbstractPacket implements InterfacePacket{
   private byte[] data;
   private Requests requestType;
   private boolean firstPacket;
+  private boolean lastPacket;
   private boolean acknowledgement;
   private int sequenceNumber;
   private String fileName;
@@ -54,18 +55,22 @@ public abstract class AbstractPacket implements InterfacePacket{
   public void constructHeader() {
     header = new byte[HEADER_SIZE];
     // byte 0 - 19 = filename
-    byte[] fileNameBytes = fileName.getBytes();
-    for (int i = 0; i < fileNameBytes.length; i++) {
-      header[i] = fileNameBytes[i];
+    if (fileName != null) {
+      byte[] fileNameBytes = fileName.getBytes();
+      for (int i = 0; i < fileNameBytes.length; i++) {
+        header[i] = fileNameBytes[i];
+      }
     }
-    // byte 20-23 = file type
-    byte[] fileTypeBytes = fileType.getBytes();
-    for (int i = 0; i < fileTypeBytes.length; i++) {
-      header[DatagramProperties.FILETYPEOFFSET+i] = fileTypeBytes[i];
+    if (fileType != null) {
+      // byte 20-23 = file type
+      byte[] fileTypeBytes = fileType.getBytes();
+      for (int i = 0; i < fileTypeBytes.length; i++) {
+        header[DatagramProperties.FILETYPEOFFSET + i] = fileTypeBytes[i];
+      }
     }
     // byte
-    header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] =
-        (byte) (((firstPacket ? 0x01 : 0x00) << 5) | ((acknowledgement ? 0x01 : 0x00) << 4) | (requestType.getValue() & 0xFF)); ;
+    header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] =
+        (byte) (((firstPacket ? 0x01 : 0x00) << 6) | ((lastPacket ? 0x01 : 0x00) << 5) | ((acknowledgement ? 0x01 : 0x00) << 4) | (requestType.getValue() & 0xFF)); ;
     header[DatagramProperties.SEQUENCE_NUMBEROFFSET] =
         (byte) (sequenceNumber & 0xFF);
   }
@@ -93,6 +98,17 @@ public abstract class AbstractPacket implements InterfacePacket{
   public boolean isFirstPacket() {
     return firstPacket;
   };
+
+  @Override
+  public void setLastPacket(boolean lastPacket) {
+    this.lastPacket = lastPacket;
+  };
+
+  @Override
+  public boolean isLastPacket() {
+    return lastPacket;
+  };
+
 
   @Override
   public void setAcknowledgement(boolean acknowledgement) {
@@ -159,9 +175,10 @@ public abstract class AbstractPacket implements InterfacePacket{
     try {
       fileName = Conversions.fromByteArrayToString(header, DatagramProperties.FILENAME_SIZE, DatagramProperties.FILENAME_OFFSET);
       fileType = Conversions.fromByteArrayToString(header, DatagramProperties.FILE_TYPE_SIZE, DatagramProperties.FILETYPEOFFSET);
-      requestType = Requests.byValue((header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0xF));
-      firstPacket = (header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x20) != 0;
-      acknowledgement = (header[DatagramProperties.FIRSTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;
+      requestType = Requests.byValue((header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0xF));
+      firstPacket = (header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x40) != 0;
+      lastPacket = (header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x20) != 0;
+      acknowledgement = (header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;
       sequenceNumber = (header[DatagramProperties.SEQUENCE_NUMBEROFFSET] & 0xFF);
     } catch (InvalidRequestValue ignored) {
       System.out.println("cannot parse the header!");
@@ -181,10 +198,10 @@ public abstract class AbstractPacket implements InterfacePacket{
       System.out.println("Invalid sequence number: " + sequenceNumber);
       return false;
     }
-    if (firstPacket && sequenceNumber != 0 || acknowledgement) {
+    if (firstPacket && (sequenceNumber != 0 || acknowledgement)) {
       System.out.println("Invalid first packet: " + firstPacket);
       System.out.println("Sequence number: " + sequenceNumber);
-      System.out.println("Acknowledgemetn: " + acknowledgement);
+      System.out.println("Acknowledgement: " + acknowledgement);
       return false;
     }
     System.out.println("Valid packet");

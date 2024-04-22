@@ -3,6 +3,7 @@ package com.nedap.university;
 
 import com.nedap.university.client.MyClientTUI;
 import com.nedap.university.server.PiFileServer;
+import com.nedap.university.util.DatagramProperties;
 
 public class Main {
 
@@ -12,12 +13,6 @@ public class Main {
     static final int PORTNUMBER = 8080;
     static final String hostName = "RaspberryPI";
 
-    static final int DATAGRAMSIZE = 65353; // The maximum number of bytes for a datagram is 2^16, due to the field length in the header
-    static final int HEADERSIZE = 10;
-    static final int DATASIZE = DATAGRAMSIZE - HEADERSIZE;
-
-
-
     private Main() {}
 
     public static void main(String[] args) {
@@ -26,7 +21,7 @@ public class Main {
             System.out.println("Hello, Nedap University!");
             //System.out.println("Starting qoute server at port 8080");
             //QuoteServer.main(new String[]{"/home/pi/Quote/Quotes.txt", "8080"});
-            PiFileServer.main(new Integer[]{PORTNUMBER, HEADERSIZE, DATASIZE});
+            PiFileServer.main(new Integer[]{PORTNUMBER, DatagramProperties.HEADER_SIZE, DatagramProperties.DATA_SIZE});
             initShutdownHook();
 
             while (keepAlive) {
