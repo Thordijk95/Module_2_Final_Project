@@ -63,13 +63,19 @@ public class SlidingWindow extends AbstractWindow {
 
   public void verifyAcknowledgement(InterfacePacket ackPacket) {
     // Check if the sequence number matches one of the send packets
+    InterfacePacket ackedPacket = null;
     for (InterfacePacket packet : slidingWindowPackets) {
       if (packet.getSequenceNumber() == ackPacket.getSequenceNumber() && ackPacket.isAcknowledgement()
           && packet.getRequestType() == ackPacket.getRequestType()) {
         addAcknowledgedPacket(packet);
+        ackedPacket = packet;
         System.out.println("Acknowledged packet: " + packet.getSequenceNumber());
         LAF = packet.getSequenceNumber();
+        break;
       }
+    }
+    if (ackedPacket != null) {
+      slidingWindowPackets.remove(ackedPacket);
     }
   }
 
