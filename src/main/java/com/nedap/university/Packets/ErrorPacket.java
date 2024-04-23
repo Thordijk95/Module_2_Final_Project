@@ -4,14 +4,14 @@ import com.nedap.university.Communication.Requests;
 
 public class ErrorPacket extends AbstractPacket{
 
-  public ErrorPacket() {
+  public ErrorPacket(String message) {
     setRequestType(Requests.ERROR);
     setFirstPacket(false);
     setAcknowledgement(false);
     setSequenceNumber(0);
     setFileName("");
     setFileType("");
-    setData(new byte[1], 0, 0, 1);
+    setData(message.getBytes(), 0, 0, 1);
   }
 
 }

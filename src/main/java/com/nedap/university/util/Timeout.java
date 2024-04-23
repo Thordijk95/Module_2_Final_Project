@@ -20,6 +20,8 @@ public class Timeout {
 
   public void createTimer(InterfacePacket tag, Timer timer, DatagramSocket socket) {
     this.socket = socket;
+    System.out.println("Creating timer for tag: "+ tag);
+    System.out.println("tag address= " + tag.getAddress());
     timer.schedule(new TimerTask() {
       @Override
       public void run() {
@@ -37,6 +39,8 @@ public class Timeout {
       window.removeAcknowledgedPacket(tag);
     } else {
       DatagramPacket newDatagram = new DatagramPacket(tag.getData(), tag.getData().length, tag.getAddress(), tag.getPort());
+      System.out.println("Timeout elapsed for tag: "+ tag);
+      System.out.println("Resending to: "+ newDatagram.getAddress());
       socket.send(newDatagram);
       createTimer(tag, new Timer(), socket);
     }

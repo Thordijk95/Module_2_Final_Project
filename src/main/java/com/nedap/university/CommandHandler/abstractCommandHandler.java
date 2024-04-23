@@ -40,7 +40,7 @@ public abstract class abstractCommandHandler implements CommandHandler {
         case "UPLOAD" ->  upload(command[1], data);
         case "DOWNLOAD" -> download(command[1], address, port);
         case "REMOVE" -> remove(command[1]);
-        case "RENAME" -> rename(command[1]);
+        case "RENAME" -> rename(command[1], command[2]);
         case "EMPTY" -> acknowledge(Requests.EMPTY, 0, address, port);
         default->
             System.out.println("Unknown command: " + command[0]);

@@ -23,20 +23,16 @@ public class ServerCommandHandler extends abstractCommandHandler{
 
   @Override
   public void getList(InetAddress address, int port) throws IOException {
-    System.out.println(storageDirectory);
     ArrayList<String> fileList = util.getFileList(storageDirectory);
     System.out.println(fileList);
     byte[] data = Conversions.fromFileListToByteArray(fileList);
     ArrayList<byte[]> dataList = util.splitData(data);
-    boolean firstPacket = true;
-    int sequenceNumber = 0;
     slidingWindow.sender(socket, address, port, Requests.LIST, dataList, "");
   }
 
   // A file is uploaded to the serevr
   @Override
   public void upload(String filePath, byte[] data) throws IOException {
-    System.out.println("Saving the file");
     util.safeFile(storageDirectory + filePath, data);
   }
 
@@ -51,20 +47,27 @@ public class ServerCommandHandler extends abstractCommandHandler{
       // Use the sliding window to send the data
       slidingWindow.sender(socket, address, port, Requests.DOWNLOAD, dataList, fileName );
     } catch (IOException e) {
-      System.out.println(e.getMessage());
-      InterfacePacket errorPacket = new ErrorPacket();
+      e.printStackTrace();
+      InterfacePacket errorPacket = new ErrorPacket("IOException");
+      slidingWindow.sendPacket(socket, address, port, errorPacket);
     }
      return null;
   }
 
   @Override
   public void remove(String filePath) throws IOException{
-
+    try {
+      util.removeFile(storageDirectory + filePath);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
-  public void rename(String filePath) throws IOException{
-
+  public void rename(String filePath, String newFileName) throws IOException{
+    byte[] data = util.loadFile(storageDirectory + filePath);
+    util.removeFile(filePath);
+    util.safeFile(storageDirectory + newFileName, data);
   }
 
   @Override

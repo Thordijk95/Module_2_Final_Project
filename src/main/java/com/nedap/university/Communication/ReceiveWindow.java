@@ -61,6 +61,7 @@ public class ReceiveWindow extends AbstractWindow{
       InterfacePacket downloadPacket = receive(socket);
       // Check if packet is valid and not already acknowledged (e.g. acknowledgement was lost, this is resend)
       if (downloadPacket.isValidPacket() && notYetAcknowledgedPacket(downloadPacket)) {
+        System.out.println("Acknowledging packet : "+downloadPacket.getSequenceNumber());
         acknowledgePacket(socket, address, port, downloadPacket);
         if (downloadPacket.isLastPacket()) {
           return Conversions.fromDataListToByteArray(dataList);

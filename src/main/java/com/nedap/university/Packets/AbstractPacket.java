@@ -48,7 +48,7 @@ public abstract class AbstractPacket implements InterfacePacket{
   @Override
   public void setHeader(byte[] data) {
     header = new byte[HEADER_SIZE];
-    System.arraycopy(data, 0, header, 0, HEADER_SIZE-1);
+    System.arraycopy(data, 0, header, 0, HEADER_SIZE);
   }
 
   @Override
@@ -180,6 +180,7 @@ public abstract class AbstractPacket implements InterfacePacket{
       lastPacket = (header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x20) != 0;
       acknowledgement = (header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;
       sequenceNumber = (header[DatagramProperties.SEQUENCE_NUMBEROFFSET] & 0xFF);
+      System.out.println("Parsed header, seqnum : " + sequenceNumber);
     } catch (InvalidRequestValue ignored) {
       System.out.println("cannot parse the header!");
       // drop the packet
@@ -188,8 +189,7 @@ public abstract class AbstractPacket implements InterfacePacket{
 
   @Override
   public boolean isValidPacket() {
-    System.out.println("Validating packet");
-    parseHeader();
+    System.out.println("validate packet");
     if (!Requests.validRequest(requestType.toString())) {
       System.out.println("Request not valid: " + requestType.toString());
       return false;
@@ -204,7 +204,6 @@ public abstract class AbstractPacket implements InterfacePacket{
       System.out.println("Acknowledgement: " + acknowledgement);
       return false;
     }
-    System.out.println("Valid packet");
     return true;
   };
 }

@@ -38,11 +38,7 @@ public class PiFileServer {
     }
     try {
       PiFileServer server = new PiFileServer(args[0], args[1], args[2]);
-      System.out.println("Started the Raspberry Pi File Server on port " + args[0]);
       server.service();
-    } catch (SocketException e) {
-      System.out.println("Socket unavailable");
-      System.out.println(e.getMessage());
     } catch (IOException | IncorrectArgumentException e) {
       System.out.println(e.getMessage());
     }
@@ -62,17 +58,10 @@ public class PiFileServer {
   private void parseRequest(DatagramPacket request)
       throws IOException, IncorrectArgumentException {
     InterfacePacket inboundPacket = new InboundPacket(request);
-    System.out.println("Filename= "+inboundPacket.getFileName());
-    if (inboundPacket.isValidPacket()) {
+    if (inboundPacket.isValidPacket() && !inboundPacket.isAcknowledgement()) {
       // Acknowledge the packet
       serverCommandHandler.acknowledge(inboundPacket.getRequestType(), inboundPacket.getSequenceNumber(), request.getAddress(), request.getPort());;
-
-      if (inboundPacket.isFirstPacket() && !(inboundPacket.getFileName().isEmpty() || inboundPacket.getFileType().isEmpty())) {
-        util.removeFile(localStorageDirectory + inboundPacket.getFileName()+"."+inboundPacket.getFileType());
-      }
       // Handle the packet
-      System.out.println("Received " + inboundPacket.getData().length + " bytes of data");
-      System.out.println("executing request: " + inboundPacket.getRequestType().toString());
       serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.getFileName()+"."+inboundPacket.getFileType()},
           request.getAddress(), request.getPort(), inboundPacket.getData());
 

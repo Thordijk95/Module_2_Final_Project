@@ -56,6 +56,7 @@ public abstract class AbstractWindow implements Window{
     InterfacePacket ackPacket = new AckPacket(packet.getRequestType(), packet.getSequenceNumber());
     DatagramPacket ackDatagramPacket = new DatagramPacket(ackPacket.getData(), ackPacket.getData().length, address, port);
     socket.send(ackDatagramPacket);
+    System.out.println("Acknowledging packet at address: "+ackDatagramPacket.getAddress());
     addAcknowledgedPacket(packet);
   }
 

@@ -18,8 +18,8 @@ import java.util.Timer;
 
 public class SlidingWindow extends AbstractWindow {
 
-  final int maxSeqNum = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2), (DatagramProperties.SEQUENCE_NUMBER_SIZE*8));
-  final int SWS = maxSeqNum/2;
+  final int maxSeqNum = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2), (DatagramProperties.SEQUENCE_NUMBER_SIZE*8)) -1;
+  final int SWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2), (DatagramProperties.SEQUENCE_NUMBER_SIZE*8))/2;
 
   int LAF;
   int LFS;
@@ -47,6 +47,7 @@ public class SlidingWindow extends AbstractWindow {
     DatagramPacket outboundDatagram
         = new DatagramPacket(packet.getData(), packet.getData().length, address, port);
     socket.send(outboundDatagram);
+    System.out.println("Sending packet with seq num: " + packet.getSequenceNumber());
     timeout.createTimer(packet, new Timer(), socket);
     slidingWindowPackets.add(packet);
   };
@@ -55,6 +56,7 @@ public class SlidingWindow extends AbstractWindow {
   public InterfacePacket receive(DatagramSocket socket) throws IOException {
     DatagramPacket datagramPacket = new DatagramPacket(new byte[DatagramProperties.DATAGRAMSIZE], DatagramProperties.DATAGRAMSIZE);
     socket.receive(datagramPacket);
+    System.out.println("Received packet with address: " + datagramPacket.getAddress());
     return new InboundPacket(datagramPacket);
   }
 
@@ -64,6 +66,7 @@ public class SlidingWindow extends AbstractWindow {
       if (packet.getSequenceNumber() == ackPacket.getSequenceNumber() && ackPacket.isAcknowledgement()
           && packet.getRequestType() == ackPacket.getRequestType()) {
         addAcknowledgedPacket(packet);
+        System.out.println("Acknowledged packet: " + packet.getSequenceNumber());
         LAF = packet.getSequenceNumber();
       }
     }
@@ -71,10 +74,10 @@ public class SlidingWindow extends AbstractWindow {
 
   public boolean inSendWindow(int sequenceNumber) {
     // Check if the sequence number could already have wrapped
-    if (LAF + SWS > maxSeqNum) {
+    if (LAF + SWS >= maxSeqNum) {
       // sequence numbers can wrap back to zero
       return sequenceNumber < LAF + SWS - maxSeqNum || (sequenceNumber > LAF
-          && sequenceNumber < SWS);
+          && sequenceNumber < SWS+LAF);
     } else {
       // sequence numbers should be between LAF and SWS
       return (sequenceNumber >= LAF && sequenceNumber < (LAF + SWS));
@@ -84,23 +87,30 @@ public class SlidingWindow extends AbstractWindow {
 
   @Override
   public void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType, ArrayList<byte[]> dataList, String filename) throws IOException {
-    int packetCount = dataList.size();
+    LAF = 0;
+    LFS = -1;
     int sequenceNumber = 0;
     boolean first = true;
     for (byte[] dataPacket : dataList) {
       if (inSendWindow(sequenceNumber)) {
         dataPacket = util.lastPacketInList(dataPacket, dataList);
-        send(socket, address, port, requestType, first, false, sequenceNumber, filename, dataPacket);
+        send(socket, address, port, requestType, first, false, sequenceNumber, filename,
+            dataPacket);
         LFS = sequenceNumber;
         sequenceNumber++;
         first = false;
         verifyAcknowledgement(receive(socket));
+      } else {
+        System.out.println("Packet not in sender window " + LAF + ":" + LFS);
       }
-      if (sequenceNumber == Math.pow(2,8)) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
+      if (sequenceNumber == 127) {
+        System.out.println("break");
+      }
+      if (sequenceNumber == Math.pow(2,
+          8)) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
         sequenceNumber = 0;
       }
     }
-    sendPacket(socket, address, port, new ClosingPacket(requestType));
   }
 
   @Override

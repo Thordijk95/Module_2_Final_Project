@@ -17,7 +17,7 @@ public interface CommandHandler {
 
   void remove(String fileName) throws IOException;
 
-  void rename(String fileName) throws IOException;
+  void rename(String filePath, String newFileName) throws IOException;
 
   void acknowledge(Requests request, int sequenceNumber, InetAddress hostname, int port) throws IOException;
 

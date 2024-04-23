@@ -9,13 +9,12 @@ public class InboundPacket extends AbstractPacket {
   // Create a packet to receive inbound data
   public InboundPacket(DatagramPacket inboundDatagram) {
     byte[] data = new byte[inboundDatagram.getLength()];
-    System.arraycopy(inboundDatagram.getData(), 0, data, 0, inboundDatagram.getLength()-1);
+    System.arraycopy(inboundDatagram.getData(), 0, data, 0, inboundDatagram.getLength());
     System.out.println("copied data : " + data.length);
     setPort(inboundDatagram.getPort());
     setAddress(inboundDatagram.getAddress());
     setHeader(data);
-    System.out.println("header set");
-    setData(data, HEADER_SIZE-1, 0, inboundDatagram.getLength()- (HEADER_SIZE-1));
+    setData(data, HEADER_SIZE, 0, inboundDatagram.getLength()- (HEADER_SIZE));
     parseHeader();
   }
 

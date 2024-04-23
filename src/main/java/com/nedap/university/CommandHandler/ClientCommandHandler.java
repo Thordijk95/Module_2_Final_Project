@@ -55,7 +55,6 @@ public class ClientCommandHandler extends abstractCommandHandler{
 
   @Override
   public void upload(String fileName, byte[] ignored_data) throws IOException {
-    fileName = "tiny.pdf";
     System.out.println("Uploading file: " + fileName + " to server");
     byte[] data = util.loadFile(storageDirectory + "/" + fileName);
     ArrayList<byte[]> dataList = util.splitData(data);
@@ -71,14 +70,15 @@ public class ClientCommandHandler extends abstractCommandHandler{
     InterfacePacket downloadRequestPacket =
         new OutboundPacket(address, port, Requests.DOWNLOAD, false, false, 0, fileName, new byte[1]);
     slidingWindow.sendPacket(socket, address, port, downloadRequestPacket);
+    System.out.println(downloadRequestPacket.getAddress());
     // wait for an acknowledgement of the request
     InterfacePacket ackPacket = slidingWindow.receive(socket);
     if (ackPacket.isAcknowledgement() && ackPacket.isValidPacket()) {
       slidingWindow.addAcknowledgedPacket(downloadRequestPacket);
       // start the receiver to receive the incoming file
       byte[] data = receivingWindow.receiver(socket, address, port, Requests.DOWNLOAD);
+      util.removeFile(storageDirectory+"/"+fileName);
       util.safeFile(storageDirectory+"/"+fileName, data);
-
     }
     return null;
   }
@@ -86,18 +86,26 @@ public class ClientCommandHandler extends abstractCommandHandler{
   @Override
   public void remove(String fileName) throws IOException {
     System.out.println("Removing file: " + fileName + " from server");
+    
   }
 
   @Override
-  public void rename(String fileName) throws IOException {
-    System.out.println("Renaming file: " + fileName + " on server");
+  public void rename(String fileName, String newFileName) throws IOException {
+    System.out.println("Renaming file: " + fileName + " on server to " + newFileName);
+    byte[] newFileNameBytes = newFileName.getBytes();
+    InterfacePacket renamePacket = new OutboundPacket(address, port, Requests.RENAME, true, false, 0, fileName, newFileNameBytes);
+    slidingWindow.sendPacket(socket, address, port, renamePacket);
+    InterfacePacket ackPacket = slidingWindow.receive(socket);
+    if (ackPacket.isAcknowledgement() && ackPacket.isValidPacket()) {
+      System.out.println("File renamed to " + newFileName);
+    }
   }
 
   @Override
   public boolean testConnectionAtRunTime(InetAddress address, int port) throws IOException, InterruptedException {
-    InterfacePacket packet = new ConnectionPacket();
+    InterfacePacket packet = new ConnectionPacket(address, port);
     DatagramPacket datagramPacket = new DatagramPacket(packet.getData(), packet.getData().length-1, address, port);
-    System.out.println("Sending data gram");
+    System.out.println("Sending connection request");
     slidingWindow.sendPacket(socket, address, port, packet);
     byte[] response = new byte[512];
     DatagramPacket responsePacket = new DatagramPacket(response, response.length);
