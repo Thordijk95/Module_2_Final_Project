@@ -2,7 +2,7 @@ package com.nedap.university.util;
 
 public class DatagramProperties {
 
-  public static int DATAGRAMSIZE = (int) Math.pow(2.0, 15.0); // fieldLength is a 16bit segment of the standard UDP header
+  public static int DATAGRAMSIZE = (int) Math.pow(2.0, 10.0); // fieldLength is a 16bit segment of the standard UDP header
 
   public static int SOURCE_PORT_SIZE = 2; // source port is 16 bit value
   public static int DESTINATION_PORT_SIZE = 2;
@@ -15,7 +15,8 @@ public class DatagramProperties {
   public static int FIRST_LAST_ACKNOWLEDGMENT_REQUEST = 1; // 1 byte is used to store the acknowledgement and the requesttype of a packet
   public static int SEQUENCE_NUMBER_SIZE = 1;  // 1 byte is used to store the sequence number of a packet, this limits the send window, however, SWS of 127 is sufficient
   public static int HEADER_SIZE = FILENAME_SIZE + FILE_TYPE_SIZE + FIRST_LAST_ACKNOWLEDGMENT_REQUEST + SEQUENCE_NUMBER_SIZE;
-  public static int DATA_SIZE = DATAGRAMSIZE- HEADER_SIZE - UDP_HEADER_SIZE;
+
+  public static int DATA_SIZE = DATAGRAMSIZE- HEADER_SIZE;
 
   public static int FILENAME_OFFSET = 0;
   public static int FILETYPEOFFSET = FILENAME_OFFSET + FILENAME_SIZE;

@@ -30,7 +30,7 @@ public class ReceiveWindow extends AbstractWindow{
 
   @Override
   public void send(DatagramSocket socket, InetAddress address, int port, Requests requestType,
-      boolean first, boolean ack, int packetCounter, String filename, byte[] dataPacket) throws IOException {
+      boolean first, boolean last, boolean ack, int packetCounter, String filename, byte[] dataPacket) throws IOException {
     // Should not be used from receivewindow
   }
 
@@ -41,7 +41,7 @@ public class ReceiveWindow extends AbstractWindow{
 
   @Override
   public InterfacePacket receive(DatagramSocket socket) throws IOException {
-      DatagramPacket inboundDatagram = new DatagramPacket(new byte[DatagramProperties.DATA_SIZE], DatagramProperties.DATA_SIZE);
+      DatagramPacket inboundDatagram = new DatagramPacket(new byte[DatagramProperties.DATAGRAMSIZE], DatagramProperties.DATAGRAMSIZE);
       socket.receive(inboundDatagram);
       return new InboundPacket(inboundDatagram);
   }
@@ -63,14 +63,12 @@ public class ReceiveWindow extends AbstractWindow{
       if (downloadPacket.isValidPacket() && notYetAcknowledgedPacket(downloadPacket)) {
         System.out.println("Acknowledging packet : "+downloadPacket.getSequenceNumber());
         acknowledgePacket(socket, address, port, downloadPacket);
-        if (downloadPacket.isLastPacket()) {
-          return Conversions.fromDataListToByteArray(dataList);
-        }
         System.out.println("Received data packet");
         byte[] data = downloadPacket.getData();
         dataList.add(data);
-
-
+        if (downloadPacket.isLastPacket()) {
+          return Conversions.fromDataListToByteArray(dataList);
+        }
       } else if (downloadPacket.isValidPacket() && !notYetAcknowledgedPacket(downloadPacket)) {
         // Packet has already been processed and acknowledged but acknowledgement was apparently lost
         // resend the acknowledgement but do not use the data

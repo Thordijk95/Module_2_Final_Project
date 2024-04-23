@@ -29,7 +29,7 @@ public abstract class AbstractWindow implements Window{
     storageDirectory = directory;
   }
 
-  public abstract void send(DatagramSocket socket, InetAddress address, int port, Requests requestType, boolean first, boolean ack, int packetCounter,
+  public abstract void send(DatagramSocket socket, InetAddress address, int port, Requests requestType, boolean first, boolean last, boolean ack, int packetCounter,
       String filename, byte[] dataPacket) throws IOException;
 
   public abstract void sendPacket(DatagramSocket socket, InetAddress address, int port, InterfacePacket packet) throws IOException;

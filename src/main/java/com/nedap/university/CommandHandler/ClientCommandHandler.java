@@ -33,7 +33,7 @@ public class ClientCommandHandler extends abstractCommandHandler{
   public void getList(InetAddress address, int port) throws IOException {
     System.out.println("Retrieving list from server");
     // send the request to get the list
-    InterfacePacket outboundPacket = new OutboundPacket(address, port, Requests.LIST, true, false, 0, "", new byte[1]);
+    InterfacePacket outboundPacket = new OutboundPacket(address, port, Requests.LIST, true,  false, false, 0, "", new byte[1]);
     DatagramPacket outboundDatagramPacket = new DatagramPacket(outboundPacket.getData(), outboundPacket.getData().length, address, port);
     socket.send(outboundDatagramPacket);
 
@@ -68,7 +68,7 @@ public class ClientCommandHandler extends abstractCommandHandler{
     System.out.println("Downloading file: " + fileName + " from server");
     // send the download request
     InterfacePacket downloadRequestPacket =
-        new OutboundPacket(address, port, Requests.DOWNLOAD, false, false, 0, fileName, new byte[1]);
+        new OutboundPacket(address, port, Requests.DOWNLOAD, false, false, false, 0, fileName, new byte[1]);
     slidingWindow.sendPacket(socket, address, port, downloadRequestPacket);
     System.out.println(downloadRequestPacket.getAddress());
     // wait for an acknowledgement of the request
@@ -93,7 +93,7 @@ public class ClientCommandHandler extends abstractCommandHandler{
   public void rename(String fileName, String newFileName) throws IOException {
     System.out.println("Renaming file: " + fileName + " on server to " + newFileName);
     byte[] newFileNameBytes = newFileName.getBytes();
-    InterfacePacket renamePacket = new OutboundPacket(address, port, Requests.RENAME, true, false, 0, fileName, newFileNameBytes);
+    InterfacePacket renamePacket = new OutboundPacket(address, port, Requests.RENAME, true, false, false, 0, fileName, newFileNameBytes);
     slidingWindow.sendPacket(socket, address, port, renamePacket);
     InterfacePacket ackPacket = slidingWindow.receive(socket);
     if (ackPacket.isAcknowledgement() && ackPacket.isValidPacket()) {

@@ -40,6 +40,7 @@ public abstract class AbstractPacket implements InterfacePacket{
     }
     System.arraycopy(source, sourcePosition, this.data, destinationPosition, length);
   }
+
   @Override
   public byte[] getData() {
     return data;

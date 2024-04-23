@@ -14,6 +14,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Timer;
 
 public class SlidingWindow extends AbstractWindow {
@@ -36,9 +37,9 @@ public class SlidingWindow extends AbstractWindow {
 
   @Override
   public void send(DatagramSocket socket, InetAddress address, int port, Requests requestType,
-      boolean first, boolean ack, int packetCounter, String filename, byte[] dataPacket) throws IOException {
+      boolean first, boolean last, boolean ack, int packetCounter, String filename, byte[] dataPacket) throws IOException {
     InterfacePacket outboundPacket =
-        new OutboundPacket(address, port, requestType, first, false, packetCounter, filename, dataPacket);
+        new OutboundPacket(address, port, requestType, first, last, false, packetCounter, filename, dataPacket);
     sendPacket(socket, address, port, outboundPacket);
   }
 
@@ -54,7 +55,7 @@ public class SlidingWindow extends AbstractWindow {
 
   @Override
   public InterfacePacket receive(DatagramSocket socket) throws IOException {
-    DatagramPacket datagramPacket = new DatagramPacket(new byte[DatagramProperties.DATAGRAMSIZE], DatagramProperties.DATAGRAMSIZE);
+    DatagramPacket datagramPacket = new DatagramPacket(new byte[DatagramProperties.DATA_SIZE], DatagramProperties.DATA_SIZE);
     socket.receive(datagramPacket);
     System.out.println("Received packet with address: " + datagramPacket.getAddress());
     return new InboundPacket(datagramPacket);
@@ -91,10 +92,13 @@ public class SlidingWindow extends AbstractWindow {
     LFS = -1;
     int sequenceNumber = 0;
     boolean first = true;
+    boolean last = false;
     for (byte[] dataPacket : dataList) {
       if (inSendWindow(sequenceNumber)) {
-        dataPacket = util.lastPacketInList(dataPacket, dataList);
-        send(socket, address, port, requestType, first, false, sequenceNumber, filename,
+        if (Arrays.equals(dataList.get(dataList.size()-1), dataPacket)) {
+          last = true;
+        }
+        send(socket, address, port, requestType, first, last, false, sequenceNumber, filename,
             dataPacket);
         LFS = sequenceNumber;
         sequenceNumber++;

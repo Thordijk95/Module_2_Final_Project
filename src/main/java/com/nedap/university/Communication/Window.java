@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public interface Window {
 
   void send(
-      DatagramSocket socket, InetAddress address, int port, Requests requestType, boolean first, boolean ack, int packetCounter,
+      DatagramSocket socket, InetAddress address, int port, Requests requestType, boolean first, boolean last, boolean ack, int packetCounter,
       String filename, byte[] dataPacket) throws IOException;
 
   void sendPacket(DatagramSocket socket, InetAddress address, int port, InterfacePacket packet) throws IOException;

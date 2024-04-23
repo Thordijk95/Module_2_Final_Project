@@ -10,9 +10,10 @@ import java.util.regex.PatternSyntaxException;
 public class OutboundPacket extends AbstractPacket{
 
   // Create an outbound packet with header and data to send
-  public OutboundPacket(InetAddress address, int port, Requests requestType, boolean firstPacket, boolean acknowledgement, int sequenceNumber, String fileName, byte[] data) {
+  public OutboundPacket(InetAddress address, int port, Requests requestType, boolean firstPacket, boolean last, boolean acknowledgement, int sequenceNumber, String fileName, byte[] data) {
     setRequestType(requestType);
     setFirstPacket(firstPacket);
+    setLastPacket(last);
     setAcknowledgement(acknowledgement);
     setSequenceNumber(sequenceNumber);
     setAddress(address);
