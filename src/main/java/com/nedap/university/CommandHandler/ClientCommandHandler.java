@@ -93,7 +93,11 @@ public class ClientCommandHandler extends abstractCommandHandler{
   @Override
   public void remove(String fileName) throws IOException {
     System.out.println("Removing file: " + fileName + " from server");
-    
+    InterfacePacket removeRequestPacket = new OutboundPacket(address, port, Requests.REMOVE, false, false, false, 255, fileName, new byte[0]);
+    slidingWindow.sendPacket(socket, address, port, removeRequestPacket);
+    while(!(slidingWindow.verifyAcknowledgement(slidingWindow.receive(socket)))) {
+      // Wait for the acknowledgement of the request
+    }
   }
 
   @Override
@@ -102,10 +106,10 @@ public class ClientCommandHandler extends abstractCommandHandler{
     byte[] newFileNameBytes = newFileName.getBytes();
     InterfacePacket renamePacket = new OutboundPacket(address, port, Requests.RENAME, true, false, false, 0, fileName, newFileNameBytes);
     slidingWindow.sendPacket(socket, address, port, renamePacket);
-    InterfacePacket ackPacket = slidingWindow.receive(socket);
-    if (ackPacket.isAcknowledgement() && ackPacket.isValidPacket()) {
-      System.out.println("File renamed to " + newFileName);
+    while(!(slidingWindow.verifyAcknowledgement(slidingWindow.receive(socket)))) {
+      // Wait for the acknowledgement of the request
     }
+    System.out.println("Rename request acknowledged!");
   }
 
   @Override
