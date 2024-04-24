@@ -23,7 +23,9 @@ public class ServerCommandHandler extends abstractCommandHandler{
   }
 
   @Override
-  public void getList(InetAddress address, int port) throws IOException {
+  public void getList(InetAddress address, int port, InterfacePacket requestPacket) throws IOException {
+    // Acknowledge the request packet
+    acknowledge(requestPacket, address, port);
     ArrayList<String> fileList = util.getFileList(storageDirectory);
     System.out.println(fileList);
     byte[] data = Conversions.fromFileListToByteArray(fileList);
@@ -33,20 +35,24 @@ public class ServerCommandHandler extends abstractCommandHandler{
 
   // A file is uploaded to the serevr
   @Override
-  public void upload(String filePath, InetAddress address, int port) throws IOException {
+  public void upload(String filePath, InetAddress address, int port, InterfacePacket requestPacket) throws IOException {
+    // Acknowledge the request packet
+    acknowledge(requestPacket, address, port);
     // Start receiving files to upload
     byte[] data = receivingWindow.receiver(socket, address, port, Requests.UPLOAD);
-    util.safeFile(storageDirectory + filePath, data);
+    util.safeFile(storageDirectory + "/" + filePath, data);
   }
 
   // A file is downloaded from the server
   @Override
-  public byte[] download(String fileName, InetAddress address, int port) throws IOException{
+  public void download(String fileName, InetAddress address, int port, InterfacePacket requestPacket) throws IOException{
     System.out.println("Loading file: " + fileName);
     try {
       // Load the file
-      byte[] data = Util.loadFile(storageDirectory + fileName);
+      byte[] data = Util.loadFile(storageDirectory + "/" + fileName);
       ArrayList<byte[]> dataList = util.splitData(data);
+      // Acknowledge the request packet
+      acknowledge(requestPacket, address, port);
       // Use the sliding window to send the data
       slidingWindow.sender(socket, address, port, Requests.DOWNLOAD, dataList, fileName );
     } catch (IOException e) {
@@ -54,23 +60,29 @@ public class ServerCommandHandler extends abstractCommandHandler{
       InterfacePacket errorPacket = new ErrorPacket("IOException");
       slidingWindow.sendPacket(socket, address, port, errorPacket);
     }
-     return null;
   }
 
   @Override
-  public void remove(String filePath) throws IOException{
+  public void remove(String filePath, InetAddress address, int port, InterfacePacket requestPacket) throws IOException{
     try {
-      util.removeFile(storageDirectory + filePath);
+      util.removeFile(storageDirectory + "/" + filePath);
+      // Acknowledge the request packet after succesfully performing the command
+      acknowledge(requestPacket, address, port);
     } catch (IOException e) {
+      e.printStackTrace();
+      InterfacePacket errorPacket = new ErrorPacket("IOException");
+      slidingWindow.sendPacket(socket, address, port, errorPacket);
       e.printStackTrace();
     }
   }
 
   @Override
-  public void rename(String filePath, String newFileName) throws IOException{
-    byte[] data = Util.loadFile(storageDirectory + filePath);
-    util.removeFile(filePath);
-    util.safeFile(storageDirectory + newFileName, data);
+  public void rename(String filePath, String newFileName, InetAddress address, int port,  InterfacePacket requestPacket) throws IOException{
+    byte[] data = Util.loadFile(storageDirectory + "/" + filePath);
+    util.removeFile(storageDirectory + "/" + filePath);
+    util.safeFile(storageDirectory + "/" + newFileName, data);
+    // Acknowledge the request packet
+    acknowledge(requestPacket, address, port);
   }
 
   @Override

@@ -63,7 +63,7 @@ public class Util {
       path = Paths.get(filePath);
     } catch (InvalidPathException e) {
       System.out.println("failed to remove the file: " + filePath);
-      return;
+      throw new IOException("failed to remove the file: " + filePath);
     }
     if (Files.exists(path)) {
       Files.delete(path);

@@ -42,7 +42,7 @@ public class MyClientTUI {
             help();
           } else if (Requests.validRequest(args[0].toUpperCase())) {
             try {
-              myClient.clientCommandHandler.executeCommand(args, InetAddress.getLocalHost(), Integer.parseInt(port), null);
+              myClient.clientCommandHandler.executeCommand(args, InetAddress.getLocalHost(), Integer.parseInt(port), null, null);
             } catch (IncorrectArgumentException e) {
               System.out.println(e.getMessage());
             } catch (IOException e) {

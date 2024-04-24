@@ -38,6 +38,16 @@ public class Main {
         } else {
             //start a client tui
             MyClientTUI.main(args);
+            initShutdownHook();
+            while (keepAlive) {
+                try {
+                    // do useful stuff
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+
         }
     }
 

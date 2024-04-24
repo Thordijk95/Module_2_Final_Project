@@ -24,5 +24,5 @@ public class DatagramProperties {
   public static int SEQUENCE_NUMBEROFFSET = FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET + FIRST_LAST_ACKNOWLEDGMENT_REQUEST;
 
   public static String SEPARATOR = ";";
-  public static long TIMEOUT = 5000; //milli seconds
+  public static long TIMEOUT = 500000; //milli seconds
 }

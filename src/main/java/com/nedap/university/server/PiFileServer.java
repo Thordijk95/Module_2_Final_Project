@@ -22,7 +22,7 @@ public class PiFileServer {
   private Random random;
 
   static String storageDirectory = "/home/pi/PiFileServerStorageDirectory/";
-  static String localStorageDirectory = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/PiSpoofDir/";
+  static String localStorageDirectory = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/PiSpoofDir";
   CommandHandler serverCommandHandler;
   Util util;
 //
@@ -60,11 +60,9 @@ public class PiFileServer {
       throws IOException, IncorrectArgumentException {
     InterfacePacket inboundPacket = new InboundPacket(request);
     if (inboundPacket.isValidPacket() && !inboundPacket.isAcknowledgement() && !inboundPacket.getRequestType().equals(Requests.CONNECT)) {
-      // Acknowledge the packet
-      serverCommandHandler.acknowledge(inboundPacket, request.getAddress(), request.getPort());;
       // Handle the packet
       serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.getFileName()+"."+inboundPacket.getFileType()},
-          request.getAddress(), request.getPort(), inboundPacket.getData());
+          request.getAddress(), request.getPort(), inboundPacket.getData(), inboundPacket);
 
     } else if (inboundPacket.getRequestType().equals(Requests.CONNECT)) {
       serverCommandHandler.acknowledge(inboundPacket, request.getAddress(), request.getPort());;
