@@ -19,12 +19,10 @@ import java.util.Timer;
 
 public class SlidingWindow extends AbstractWindow {
 
-  final int maxSeqNum = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
-      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) - 1;
   final int SWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
       (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) / 2;
 
-  int LAF = 0;
+  int LAR = 0;
   int LFS;
 
   ArrayList<InterfacePacket> slidingWindowPackets;
@@ -65,7 +63,6 @@ public class SlidingWindow extends AbstractWindow {
     DatagramPacket datagramPacket = new DatagramPacket(new byte[DatagramProperties.DATA_SIZE],
         DatagramProperties.DATA_SIZE);
     socket.receive(datagramPacket);
-    System.out.println("Received packet with address: " + datagramPacket.getAddress());
     return new InboundPacket(datagramPacket);
   }
 
@@ -75,13 +72,42 @@ public class SlidingWindow extends AbstractWindow {
     int sequenceNumber = 0;
     int wrapCounter = 0;
     int packetCounter = 0;
-    LAF = 0;
+    LAR = -1;
     LFS = -1;
     boolean first = true;
     boolean last = false;
-    while(!last){
+    boolean stop = false;
+
+    // send an intial burst of packets to fill the send window
+    for(int i = 0; i <= Math.min(dataList.size()-1, SWS); i++) {
+      sequenceNumber = i;
+      packetCounter = sequenceNumber;
       byte[] dataPacket = dataList.get(packetCounter);
-      if (inWindow(LAF, SWS, maxSeqNum, sequenceNumber)) {
+      if (i == dataList.size() - 1) {
+        // SWS is larger than total number of packets, everything was send in the burst
+        stop = true;
+        last = true;
+      }
+      send(socket, address, port, requestType, first, last, false, sequenceNumber, filename,
+          dataPacket);
+      LFS = sequenceNumber;
+      first = false;
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        System.out.println("Sleep was interrupted");
+      }
+    }
+    sequenceNumber++;
+    packetCounter++;
+
+    while(!stop){
+      byte[] dataPacket = dataList.get(packetCounter);
+      if (sequenceNumber == 254) {
+        System.out.println("wait!");
+      }
+      if (inWindow(LAR, SWS, maxSeqNum, sequenceNumber)) {
+        // send the next packet
         if (Arrays.equals(dataList.get(dataList.size() - 1), dataPacket)) {
           last = true;
         }
@@ -89,23 +115,36 @@ public class SlidingWindow extends AbstractWindow {
             dataPacket);
         LFS = sequenceNumber;
 
-        first = false;
+        sequenceNumber++;
+        packetCounter = sequenceNumber + maxSeqNum*wrapCounter;
+      } else {
+        System.out.println("Packet not in sender window " + LAR + ":" + LFS);
+        System.out.println("Waiting for acknowledgement to continue");
         while (!(verifyAcknowledgement(receive(socket)))) {
-          System.out.println("Waiting for acknowledgement");
           // do nothing
         }
-        sequenceNumber++;
-        packetCounter++;
-      } else {
-        System.out.println("Packet not in sender window " + LAF + ":" + LFS);
       }
       if (sequenceNumber == 127) {
         System.out.println("break");
       }
-      if (sequenceNumber == Math.pow(2,
-          8)) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
+      if (sequenceNumber == maxSeqNum) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
+        System.out.println("Wrap arround");
         sequenceNumber = 0;
         wrapCounter++;
+      }
+      while(last) {
+        System.out.println("last packet has been sent, wait for all the acks or timeouts that trigger acks");
+        stop = true;
+        if (slidingWindowPackets.isEmpty()) {
+          break;
+        }
+        if (slidingWindowPackets.size() == 1) {
+          System.out.println("Last packet needs ack");
+        }
+        while (!(verifyAcknowledgement(receive(socket)))) {
+          System.out.println("Waiting for acknowledgement");
+          // do nothing
+        }
       }
     }
   }
@@ -127,7 +166,7 @@ public class SlidingWindow extends AbstractWindow {
           && packet.getRequestType() == ackPacket.getRequestType()) {
         addAcknowledgedPacket(packet);
         ackedPacket = packet;
-        LAF = packet.getSequenceNumber();
+        LAR = packet.getSequenceNumber();
         System.out.println("Received acknowledgement for: " + packet.getRequestType() + " "
             + packet.getSequenceNumber());
         break;
@@ -145,5 +184,18 @@ public class SlidingWindow extends AbstractWindow {
       InterfacePacket packet) throws IOException {
     System.out.println("VerifyNewPacket method should not be used from the sender class");
     return false;
+  }
+
+  @Override
+  public boolean inWindow(int lowerBound, int windowSize, int maxSeqNum, int seqNum) {
+    // Check if the sequence number could already have wrapped
+    if (lowerBound + windowSize >= maxSeqNum) {
+      // sequence numbers can wrap back to zero
+      return seqNum < lowerBound + windowSize - maxSeqNum || (seqNum > lowerBound
+          && seqNum < maxSeqNum);
+    } else {
+      // sequence numbers should be between LAF and SWS
+      return (seqNum >= lowerBound && seqNum < (lowerBound + windowSize));
+    }
   }
 }

@@ -15,6 +15,10 @@ import java.util.ArrayList;
 import java.util.Timer;
 
 public abstract class AbstractWindow implements Window{
+
+  final int maxSeqNum = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
+      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) - 1;
+
   String storageDirectory;
 
   ArrayList<InterfacePacket> acknowledgedPackets;
@@ -53,18 +57,6 @@ public abstract class AbstractWindow implements Window{
     socket.send(ackDatagramPacket);
     System.out.println("Acknowledging packet: " + packet.getRequestType() + " " + packet.getSequenceNumber());
     addAcknowledgedPacket(packet);
-  }
-
-  public boolean inWindow(int lowerBound, int windowSize, int maxSeqNum, int seqNum) {
-    // Check if the sequence number could already have wrapped
-    if (lowerBound + windowSize >= maxSeqNum) {
-      // sequence numbers can wrap back to zero
-      return seqNum < lowerBound + windowSize - maxSeqNum || (seqNum > lowerBound
-          && seqNum < windowSize + lowerBound);
-    } else {
-      // sequence numbers should be between LAF and SWS
-      return (seqNum >= lowerBound && seqNum < (lowerBound + windowSize));
-    }
   }
 }
 

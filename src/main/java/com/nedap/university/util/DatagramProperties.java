@@ -2,7 +2,7 @@ package com.nedap.university.util;
 
 public class DatagramProperties {
 
-  public static int DATAGRAMSIZE = (int) Math.pow(2.0, 10.0); // fieldLength is a 16bit segment of the standard UDP header
+  public static int DATAGRAMSIZE = (int) Math.pow(2.0, 12.0); // fieldLength is a 16bit segment of the standard UDP header
 
   public static int SOURCE_PORT_SIZE = 2; // source port is 16 bit value
   public static int DESTINATION_PORT_SIZE = 2;
@@ -24,5 +24,5 @@ public class DatagramProperties {
   public static int SEQUENCE_NUMBEROFFSET = FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET + FIRST_LAST_ACKNOWLEDGMENT_REQUEST;
 
   public static String SEPARATOR = ";";
-  public static long TIMEOUT = 30000; //milli seconds
+  public static long TIMEOUT = 5000; //milli seconds
 }

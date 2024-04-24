@@ -8,6 +8,7 @@ import com.nedap.university.Packets.ErrorPacket;
 import com.nedap.university.Packets.InboundPacket;
 import com.nedap.university.Packets.InterfacePacket;
 import com.nedap.university.Packets.OutboundPacket;
+import com.nedap.university.util.Util;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -44,7 +45,7 @@ public class ServerCommandHandler extends abstractCommandHandler{
     System.out.println("Loading file: " + fileName);
     try {
       // Load the file
-      byte[] data = util.loadFile(storageDirectory + fileName);
+      byte[] data = Util.loadFile(storageDirectory + fileName);
       ArrayList<byte[]> dataList = util.splitData(data);
       // Use the sliding window to send the data
       slidingWindow.sender(socket, address, port, Requests.DOWNLOAD, dataList, fileName );
@@ -67,7 +68,7 @@ public class ServerCommandHandler extends abstractCommandHandler{
 
   @Override
   public void rename(String filePath, String newFileName) throws IOException{
-    byte[] data = util.loadFile(storageDirectory + filePath);
+    byte[] data = Util.loadFile(storageDirectory + filePath);
     util.removeFile(filePath);
     util.safeFile(storageDirectory + newFileName, data);
   }

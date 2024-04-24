@@ -32,7 +32,7 @@ public abstract class abstractCommandHandler implements CommandHandler {
 
   @Override
   public void executeCommand(String[] command, InetAddress address, int port, byte[] data) throws IncorrectArgumentException, IOException {
-    if (command.length == 2) {
+    if (!(command[0].equals(Requests.LIST.toString())) && command.length == 2) {
       if(!Util.validFileName(command[1])) {
         throw new IncorrectArgumentException("Incorrect arguments: <Command> <filename>\n "
             + "Provided arguments are: " + Arrays.toString(command));
@@ -50,10 +50,10 @@ public abstract class abstractCommandHandler implements CommandHandler {
     if (command[0].toUpperCase().equals(Requests.LIST.name()) || command.length > 1) {
       switch (command[0].toUpperCase()) {
         case "LIST" -> getList(address, port);
-        case "UPLOAD" ->  upload(command[1], address, port);
-        case "DOWNLOAD" -> download(command[1], address, port);
-        case "REMOVE" -> remove(command[1]);
-        case "RENAME" -> rename(command[1], command[2]);
+        case "UPLOAD" ->  upload(command[1].toLowerCase(), address, port);
+        case "DOWNLOAD" -> download(command[1].toLowerCase(), address, port);
+        case "REMOVE" -> remove(command[1].toLowerCase());
+        case "RENAME" -> rename(command[1].toLowerCase(), command[2].toLowerCase());
         case "EMPTY" -> {}
         default->
             System.out.println("Unknown command: " + command[0]);

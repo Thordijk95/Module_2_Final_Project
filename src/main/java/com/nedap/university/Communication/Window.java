@@ -39,4 +39,6 @@ public interface Window {
 
   boolean verifyNewPacket(DatagramSocket socket, InetAddress address, int port,
       InterfacePacket packet) throws IOException;
+
+  boolean inWindow(int lowerBound, int windowSize, int maxSeqNum, int seqNum);
 }

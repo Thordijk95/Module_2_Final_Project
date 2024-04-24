@@ -30,7 +30,7 @@ public class Util {
     return dataList;
   }
 
-  public byte[] loadFile(String filepath) throws IOException {
+  public static byte[] loadFile(String filepath) throws IOException {
     Path path = Paths.get(filepath);
     byte[] data = Files.readAllBytes(path);
     System.out.println(data.length + " bytes loaded from file");

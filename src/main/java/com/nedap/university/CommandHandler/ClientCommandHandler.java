@@ -6,6 +6,7 @@ import com.nedap.university.Communication.ReceiveWindow;
 import com.nedap.university.Communication.Requests;
 import com.nedap.university.util.Conversions;
 import com.nedap.university.util.DatagramProperties;
+import com.nedap.university.util.Util;
 import com.nedap.university.Packets.ConnectionPacket;
 import com.nedap.university.Packets.InboundPacket;
 import com.nedap.university.Packets.InterfacePacket;
@@ -63,7 +64,7 @@ public class ClientCommandHandler extends abstractCommandHandler{
       // Wait for the acknowledgement of the request
     }
     System.out.println("Uploading file: " + fileName + " to server");
-    byte[] data = util.loadFile(storageDirectory + "/" + fileName);
+    byte[] data = Util.loadFile(storageDirectory + "/" + fileName);
     ArrayList<byte[]> dataList = util.splitData(data);
     // start the sending segment
     slidingWindow.sender(socket, address, port, Requests.UPLOAD, dataList, fileName);

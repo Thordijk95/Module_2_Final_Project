@@ -29,7 +29,7 @@ public class MyClient {
     String hostName = args[0];
     WELLKNOWNPORT = Integer.parseInt(args[1]);
     SERVERADDRESS = InetAddress.getLocalHost(); //InetAddress.getByName(hostName);
-    STORAGEDIRECTORY = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/";
+    STORAGEDIRECTORY = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files";
 
     System.out.println(hostName + ":" + WELLKNOWNPORT);
     socket = new DatagramSocket();

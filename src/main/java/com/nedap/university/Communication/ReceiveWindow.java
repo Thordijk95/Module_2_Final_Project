@@ -14,22 +14,27 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
 public class ReceiveWindow extends AbstractWindow {
 
   Timeout timeout;
 
-  ArrayList<InterfacePacket> receiveWindow;
+  HashMap<Integer, InterfacePacket> receiveWindow;
+  ArrayList<byte[]> dataList;
+
 
   int RWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
       (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) / 2;
-  int LFR = 0;
+  int LFR = -1;
   int LAF = LFR + RWS;
+
+  int SEQNUMTOACK;
 
   public ReceiveWindow(String directory) {
     super(directory);
-    receiveWindow = new ArrayList<>();
+    receiveWindow = new HashMap<>();
     timeout = new Timeout(this);
   }
 
@@ -64,6 +69,7 @@ public class ReceiveWindow extends AbstractWindow {
   public byte[] receiver(DatagramSocket socket, InetAddress address, int port,
       Requests requestsType) throws IOException {
     ArrayList<byte[]> dataList = new ArrayList<byte[]>();
+    SEQNUMTOACK = 0;
     // start the receiver
     System.out.println("Starting receiver!!!");
     while (true) {
@@ -90,18 +96,78 @@ public class ReceiveWindow extends AbstractWindow {
   public boolean verifyNewPacket(DatagramSocket socket, InetAddress address, int port,
       InterfacePacket packet) throws IOException {
     // Check if packet is valid and not already acknowledged (e.g. acknowledgement was lost, this is resend)
+    if (SEQNUMTOACK == 254) {
+      System.out.println("WAIT!!");
+    }
+    boolean returnValue = false;
+
     if (packet.isValidPacket() && !getAcknowledgedPackets().contains(packet)) {
-      acknowledgePacket(socket, address, port, packet);
-      LFR = packet.getSequenceNumber();
-      return true;
+      if (inWindow(LFR, RWS, maxSeqNum, packet.getSequenceNumber())) {
+        System.out.println("Packet in window");
+        if (packet.getSequenceNumber() == SEQNUMTOACK) {
+          acknowledgePacket(socket, address, port, packet);
+          updateWindow();
+          // Check if any other packets can be acknowledged
+          processReceiveWindow(socket, address, port);
+          SEQNUMTOACK++;
+          returnValue = true;
+        } else if (!receiveWindow.containsKey(packet.getSequenceNumber())){
+          System.out.println("Sequence number: " + packet.getSequenceNumber());
+          System.out.println("SeqNumToAck: " + SEQNUMTOACK);
+          // Packet not the next to acknowledge, store for later
+          receiveWindow.put(packet.getSequenceNumber(), packet);
+        }
+      } else {
+        System.out.println("Dropped the packet 1");
+      }
     } else if (packet.isValidPacket() && getAcknowledgedPackets().contains(packet)) {
       // Packet has already been processed and acknowledged but acknowledgement was apparently lost
       // resend the acknowledgement but do not use the data
       acknowledgePacket(socket, address, port, packet);
+      if (!receiveWindow.containsKey(packet.getSequenceNumber())) {
+        // Packet not the next to acknowledge, store for later
+        receiveWindow.put(packet.getSequenceNumber(), packet);
+      }
     } else {
-      System.out.println("Dropped the packet");
+      System.out.println("Dropped the packet 1");
     }
-    return false;
+    if (SEQNUMTOACK == maxSeqNum) {
+      SEQNUMTOACK = 0;
+    }
+    return returnValue;
   }
 
+  @Override
+  public boolean inWindow(int lowerBound, int windowSize, int maxSeqNum, int seqNum) {
+    System.out.println("Check in window");
+    // Check if the sequence number could already have wrapped
+    if (lowerBound + windowSize >= maxSeqNum) {
+      // sequence numbers can wrap back to zero
+      return seqNum < lowerBound + windowSize - maxSeqNum || (seqNum > lowerBound
+          && seqNum < maxSeqNum);
+    } else {
+      // sequence numbers should be between LAF and SWS
+      return (seqNum >= lowerBound && seqNum < (lowerBound + windowSize));
+    }
+  }
+
+  public void updateWindow() {
+    LFR = SEQNUMTOACK;
+    LAF = LFR + RWS;
+    if (LAF > maxSeqNum) {
+      LAF = LAF - maxSeqNum;
+    }
+  }
+
+  public void processReceiveWindow(DatagramSocket socket, InetAddress address, int port) throws IOException{
+    for(int i = LFR; i < maxSeqNum; i++) {
+      if (!receiveWindow.containsKey(i)) {
+        // found a gap, stop and wait for this packet
+        break;
+      }
+      dataList.add(receiveWindow.get(i).getData());
+      acknowledgePacket(socket, address, port, receiveWindow.get(i));
+      receiveWindow.remove(i);
+    }
+  }
 }

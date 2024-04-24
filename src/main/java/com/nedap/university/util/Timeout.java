@@ -36,7 +36,7 @@ public class Timeout {
 
   private void TimeoutElapsed(InterfacePacket tag) throws IOException {
     if (window.getAcknowledgedPackets().contains(tag)) {
-
+      window.removeAcknowledgedPacket(tag);
     } else {
       DatagramPacket newDatagram = new DatagramPacket(tag.getData(), tag.getData().length, tag.getAddress(), tag.getPort());
       System.out.println("Timeout elapsed for tag: "+ tag);

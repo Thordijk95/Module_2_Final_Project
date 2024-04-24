@@ -12,7 +12,6 @@ public class AckPacket extends AbstractPacket {
     setRequestType(requestType);
     setFirstPacket(false);
     setAcknowledgement(true);
-    System.out.println("Setting sequence number for ackpacket to " + sequenceNumber);
     setSequenceNumber(sequenceNumber);
     setFileName("");
     setFileType("");
