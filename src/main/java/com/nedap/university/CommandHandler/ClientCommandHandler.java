@@ -54,7 +54,14 @@ public class ClientCommandHandler extends abstractCommandHandler{
   }
 
   @Override
-  public void upload(String fileName, byte[] ignored_data) throws IOException {
+  public void upload(String fileName, InetAddress address, int port) throws IOException {
+    // Send upload request without data to tell server what is going to happen
+    InterfacePacket uploadRequestPacket = new OutboundPacket(address, port, Requests.UPLOAD, false,  false, false, 255, fileName, new byte[0]);
+    slidingWindow.sendPacket(socket, address, port, uploadRequestPacket);
+
+    while(!(slidingWindow.verifyAcknowledgement(slidingWindow.receive(socket)))) {
+      // Wait for the acknowledgement of the request
+    }
     System.out.println("Uploading file: " + fileName + " to server");
     byte[] data = util.loadFile(storageDirectory + "/" + fileName);
     ArrayList<byte[]> dataList = util.splitData(data);
@@ -68,18 +75,17 @@ public class ClientCommandHandler extends abstractCommandHandler{
     System.out.println("Downloading file: " + fileName + " from server");
     // send the download request
     InterfacePacket downloadRequestPacket =
-        new OutboundPacket(address, port, Requests.DOWNLOAD, false, false, false, 0, fileName, new byte[1]);
+        new OutboundPacket(address, port, Requests.DOWNLOAD, false, false, false, 255, fileName, new byte[1]);
     slidingWindow.sendPacket(socket, address, port, downloadRequestPacket);
     System.out.println(downloadRequestPacket.getAddress());
     // wait for an acknowledgement of the request
-    InterfacePacket ackPacket = slidingWindow.receive(socket);
-    if (ackPacket.isAcknowledgement() && ackPacket.isValidPacket()) {
-      slidingWindow.addAcknowledgedPacket(downloadRequestPacket);
-      // start the receiver to receive the incoming file
-      byte[] data = receivingWindow.receiver(socket, address, port, Requests.DOWNLOAD);
-      util.removeFile(storageDirectory+"/"+fileName);
-      util.safeFile(storageDirectory+"/"+fileName, data);
+    while(!(slidingWindow.verifyAcknowledgement(slidingWindow.receive(socket)))) {
+      // Wait for the acknowledgement of the request
     }
+    // start the receiver to receive the incoming file
+    byte[] data = receivingWindow.receiver(socket, address, port, Requests.DOWNLOAD);
+    util.removeFile(storageDirectory+"/"+fileName);
+    util.safeFile(storageDirectory+"/"+fileName, data);
     return null;
   }
 
@@ -107,13 +113,10 @@ public class ClientCommandHandler extends abstractCommandHandler{
     DatagramPacket datagramPacket = new DatagramPacket(packet.getData(), packet.getData().length-1, address, port);
     System.out.println("Sending connection request");
     slidingWindow.sendPacket(socket, address, port, packet);
-    byte[] response = new byte[512];
-    DatagramPacket responsePacket = new DatagramPacket(response, response.length);
-    socket.receive(responsePacket);
-    InterfacePacket inboundPacket = new InboundPacket(responsePacket);
-    inboundPacket.isValidPacket();
-    slidingWindow.addAcknowledgedPacket(packet);
-    return responsePacket.getLength() > 0;
+    while(!(slidingWindow.verifyAcknowledgement(slidingWindow.receive(socket)))) {
+      // Wait for the acknowledgement of the request
+    }
+    return true;
   }
 
 }

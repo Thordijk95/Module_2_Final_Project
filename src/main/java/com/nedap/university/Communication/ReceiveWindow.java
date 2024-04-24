@@ -16,11 +16,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
-public class ReceiveWindow extends AbstractWindow{
+public class ReceiveWindow extends AbstractWindow {
 
   Timeout timeout;
 
   ArrayList<InterfacePacket> receiveWindow;
+
+  int RWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
+      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) / 2;
+  int LFR = 0;
+  int LAF = LFR + RWS;
 
   public ReceiveWindow(String directory) {
     super(directory);
@@ -30,20 +35,15 @@ public class ReceiveWindow extends AbstractWindow{
 
   @Override
   public void send(DatagramSocket socket, InetAddress address, int port, Requests requestType,
-      boolean first, boolean last, boolean ack, int packetCounter, String filename, byte[] dataPacket) throws IOException {
+      boolean first, boolean last, boolean ack, int packetCounter, String filename,
+      byte[] dataPacket) throws IOException {
     // Should not be used from receivewindow
   }
 
   @Override
-  public void sendPacket(DatagramSocket socket, InetAddress address, int port, InterfacePacket packet) throws IOException {
+  public void sendPacket(DatagramSocket socket, InetAddress address, int port,
+      InterfacePacket packet) throws IOException {
     // should not be used from receive window
-  }
-
-  @Override
-  public InterfacePacket receive(DatagramSocket socket) throws IOException {
-      DatagramPacket inboundDatagram = new DatagramPacket(new byte[DatagramProperties.DATAGRAMSIZE], DatagramProperties.DATAGRAMSIZE);
-      socket.receive(inboundDatagram);
-      return new InboundPacket(inboundDatagram);
   }
 
   @Override
@@ -53,27 +53,55 @@ public class ReceiveWindow extends AbstractWindow{
   }
 
   @Override
-  public byte[] receiver(DatagramSocket socket, InetAddress address, int port, Requests requestsType) throws IOException {
+  public InterfacePacket receive(DatagramSocket socket) throws IOException {
+    DatagramPacket inboundDatagram = new DatagramPacket(new byte[DatagramProperties.DATAGRAMSIZE],
+        DatagramProperties.DATAGRAMSIZE);
+    socket.receive(inboundDatagram);
+    return new InboundPacket(inboundDatagram);
+  }
+
+  @Override
+  public byte[] receiver(DatagramSocket socket, InetAddress address, int port,
+      Requests requestsType) throws IOException {
     ArrayList<byte[]> dataList = new ArrayList<byte[]>();
     // start the receiver
-    while(true) {
+    System.out.println("Starting receiver!!!");
+    while (true) {
       // receive the next packet
       InterfacePacket downloadPacket = receive(socket);
-      // Check if packet is valid and not already acknowledged (e.g. acknowledgement was lost, this is resend)
-      if (downloadPacket.isValidPacket() && notYetAcknowledgedPacket(downloadPacket)) {
-        System.out.println("Acknowledging packet : "+downloadPacket.getSequenceNumber());
-        acknowledgePacket(socket, address, port, downloadPacket);
-        System.out.println("Received data packet");
+      if (verifyNewPacket(socket, address, port, downloadPacket)) {
+        System.out.println("Received " + downloadPacket.getData().length +" bytes of data");
         byte[] data = downloadPacket.getData();
         dataList.add(data);
         if (downloadPacket.isLastPacket()) {
           return Conversions.fromDataListToByteArray(dataList);
         }
-      } else if (downloadPacket.isValidPacket() && !notYetAcknowledgedPacket(downloadPacket)) {
-        // Packet has already been processed and acknowledged but acknowledgement was apparently lost
-        // resend the acknowledgement but do not use the data
-        acknowledgePacket(socket, address, port, downloadPacket);
       }
     }
   }
+
+  @Override
+  public boolean verifyAcknowledgement(InterfacePacket ackPacket) {
+    System.out.println("This method should not be used from the receiver class!!");
+    return false;
+  }
+
+  @Override
+  public boolean verifyNewPacket(DatagramSocket socket, InetAddress address, int port,
+      InterfacePacket packet) throws IOException {
+    // Check if packet is valid and not already acknowledged (e.g. acknowledgement was lost, this is resend)
+    if (packet.isValidPacket() && !getAcknowledgedPackets().contains(packet)) {
+      acknowledgePacket(socket, address, port, packet);
+      LFR = packet.getSequenceNumber();
+      return true;
+    } else if (packet.isValidPacket() && getAcknowledgedPackets().contains(packet)) {
+      // Packet has already been processed and acknowledged but acknowledgement was apparently lost
+      // resend the acknowledgement but do not use the data
+      acknowledgePacket(socket, address, port, packet);
+    } else {
+      System.out.println("Dropped the packet");
+    }
+    return false;
+  }
+
 }

@@ -11,16 +11,20 @@ import java.util.ArrayList;
 public interface Window {
 
   void send(
-      DatagramSocket socket, InetAddress address, int port, Requests requestType, boolean first, boolean last, boolean ack, int packetCounter,
+      DatagramSocket socket, InetAddress address, int port, Requests requestType, boolean first,
+      boolean last, boolean ack, int packetCounter,
       String filename, byte[] dataPacket) throws IOException;
 
-  void sendPacket(DatagramSocket socket, InetAddress address, int port, InterfacePacket packet) throws IOException;
+  void sendPacket(DatagramSocket socket, InetAddress address, int port, InterfacePacket packet)
+      throws IOException;
 
   InterfacePacket receive(DatagramSocket socket) throws IOException;
 
-  void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType, ArrayList<byte[]> dataList, String filename) throws IOException;
+  void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType,
+      ArrayList<byte[]> dataList, String filename) throws IOException;
 
-  byte[] receiver(DatagramSocket socket, InetAddress address, int port, Requests requestsType) throws IOException;
+  byte[] receiver(DatagramSocket socket, InetAddress address, int port, Requests requestsType)
+      throws IOException;
 
   void addAcknowledgedPacket(InterfacePacket packet);
 
@@ -28,7 +32,11 @@ public interface Window {
 
   ArrayList<InterfacePacket> getAcknowledgedPackets();
 
-  void acknowledgePacket(DatagramSocket socket, InetAddress address,int port, InterfacePacket packet) throws IOException;
+  void acknowledgePacket(DatagramSocket socket, InetAddress address, int port,
+      InterfacePacket packet) throws IOException;
 
-  boolean notYetAcknowledgedPacket(InterfacePacket packet);
+  boolean verifyAcknowledgement(InterfacePacket ackPacket);
+
+  boolean verifyNewPacket(DatagramSocket socket, InetAddress address, int port,
+      InterfacePacket packet) throws IOException;
 }

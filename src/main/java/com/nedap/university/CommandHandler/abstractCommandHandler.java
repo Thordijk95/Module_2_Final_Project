@@ -18,7 +18,6 @@ public abstract class abstractCommandHandler implements CommandHandler {
 
   DatagramSocket socket;
   Util util;
-  Timeout timeout;
   Window slidingWindow;
   Window receivingWindow;
   String storageDirectory;
@@ -29,19 +28,33 @@ public abstract class abstractCommandHandler implements CommandHandler {
     this.storageDirectory = storageDirectory;
     slidingWindow = new SlidingWindow(storageDirectory);
     receivingWindow = new ReceiveWindow(storageDirectory);
-    timeout = new Timeout(slidingWindow);
   }
 
   @Override
   public void executeCommand(String[] command, InetAddress address, int port, byte[] data) throws IncorrectArgumentException, IOException {
+    if (command.length == 2) {
+      if(!Util.validFileName(command[1])) {
+        throw new IncorrectArgumentException("Incorrect arguments: <Command> <filename>\n "
+            + "Provided arguments are: " + Arrays.toString(command));
+      }
+    }
+    if (command[0].equals(Requests.RENAME.toString()) && command.length == 3) {
+      if(!Util.validFileName(command[2])) {
+          throw new IncorrectArgumentException("Incorrect arguments: RENAME <filename> <filename>\n "
+              + "Provided arguments are: " + Arrays.toString(command));
+      }
+    } else if (command[0].equals(Requests.RENAME.toString()) && command.length < 3){
+      throw new IncorrectArgumentException("Incorrect arguments: RENAME <filename> <filename>\n "
+          + "Provided arguments are: " + Arrays.toString(command));
+    }
     if (command[0].toUpperCase().equals(Requests.LIST.name()) || command.length > 1) {
       switch (command[0].toUpperCase()) {
         case "LIST" -> getList(address, port);
-        case "UPLOAD" ->  upload(command[1], data);
+        case "UPLOAD" ->  upload(command[1], address, port);
         case "DOWNLOAD" -> download(command[1], address, port);
         case "REMOVE" -> remove(command[1]);
         case "RENAME" -> rename(command[1], command[2]);
-        case "EMPTY" -> acknowledge(Requests.EMPTY, 0, address, port);
+        case "EMPTY" -> {}
         default->
             System.out.println("Unknown command: " + command[0]);
       }
@@ -51,9 +64,7 @@ public abstract class abstractCommandHandler implements CommandHandler {
     }
   }
 
-  public void acknowledge(Requests request, int sequenceNumber, InetAddress hostname, int port) throws IOException {
-    InterfacePacket ackPacket = new AckPacket(request, sequenceNumber);
-    DatagramPacket ackDatagramPacket = new DatagramPacket(ackPacket.getData(), ackPacket.getData().length, hostname, port);
-    socket.send(ackDatagramPacket);
+  public void acknowledge(InterfacePacket packet, InetAddress address, int port) throws IOException {
+    slidingWindow.acknowledgePacket(socket, address, port, packet);
   };
 }

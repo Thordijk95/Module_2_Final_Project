@@ -1,5 +1,6 @@
 package com.nedap.university.server;
 
+import com.nedap.university.Communication.Requests;
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import com.nedap.university.CommandHandler.CommandHandler;
 import com.nedap.university.util.DatagramProperties;
@@ -58,14 +59,17 @@ public class PiFileServer {
   private void parseRequest(DatagramPacket request)
       throws IOException, IncorrectArgumentException {
     InterfacePacket inboundPacket = new InboundPacket(request);
-    if (inboundPacket.isValidPacket() && !inboundPacket.isAcknowledgement()) {
+    if (inboundPacket.isValidPacket() && !inboundPacket.isAcknowledgement() && !inboundPacket.getRequestType().equals(Requests.CONNECT)) {
       // Acknowledge the packet
-      serverCommandHandler.acknowledge(inboundPacket.getRequestType(), inboundPacket.getSequenceNumber(), request.getAddress(), request.getPort());;
+      serverCommandHandler.acknowledge(inboundPacket, request.getAddress(), request.getPort());;
       // Handle the packet
       serverCommandHandler.executeCommand(new String[] {inboundPacket.getRequestType().toString(), inboundPacket.getFileName()+"."+inboundPacket.getFileType()},
           request.getAddress(), request.getPort(), inboundPacket.getData());
 
-    } else {
+    } else if (inboundPacket.getRequestType().equals(Requests.CONNECT)) {
+      serverCommandHandler.acknowledge(inboundPacket, request.getAddress(), request.getPort());;
+    }
+    else {
       System.out.println("Dropped the packet!");
     }
   }

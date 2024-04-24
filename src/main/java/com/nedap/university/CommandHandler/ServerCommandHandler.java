@@ -32,7 +32,9 @@ public class ServerCommandHandler extends abstractCommandHandler{
 
   // A file is uploaded to the serevr
   @Override
-  public void upload(String filePath, byte[] data) throws IOException {
+  public void upload(String filePath, InetAddress address, int port) throws IOException {
+    // Start receiving files to upload
+    byte[] data = receivingWindow.receiver(socket, address, port, Requests.UPLOAD);
     util.safeFile(storageDirectory + filePath, data);
   }
 

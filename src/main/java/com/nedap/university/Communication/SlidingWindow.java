@@ -19,97 +19,83 @@ import java.util.Timer;
 
 public class SlidingWindow extends AbstractWindow {
 
-  final int maxSeqNum = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2), (DatagramProperties.SEQUENCE_NUMBER_SIZE*8)) -1;
-  final int SWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2), (DatagramProperties.SEQUENCE_NUMBER_SIZE*8))/2;
+  final int maxSeqNum = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
+      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) - 1;
+  final int SWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
+      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) / 2;
 
-  int LAF;
+  int LAF = 0;
   int LFS;
 
   ArrayList<InterfacePacket> slidingWindowPackets;
-
+  Timeout timeout;
   Util util;
 
   public SlidingWindow(String directory) {
     super(directory);
     slidingWindowPackets = new ArrayList<>();
+    timeout = new Timeout(this);
     util = new Util();
   }
 
   @Override
   public void send(DatagramSocket socket, InetAddress address, int port, Requests requestType,
-      boolean first, boolean last, boolean ack, int packetCounter, String filename, byte[] dataPacket) throws IOException {
+      boolean first, boolean last, boolean ack, int packetCounter, String filename,
+      byte[] dataPacket) throws IOException {
     InterfacePacket outboundPacket =
-        new OutboundPacket(address, port, requestType, first, last, false, packetCounter, filename, dataPacket);
+        new OutboundPacket(address, port, requestType, first, last, false, packetCounter, filename,
+            dataPacket);
     sendPacket(socket, address, port, outboundPacket);
   }
 
   @Override
-  public void sendPacket(DatagramSocket socket, InetAddress address, int port, InterfacePacket packet) throws IOException {
+  public void sendPacket(DatagramSocket socket, InetAddress address, int port,
+      InterfacePacket packet) throws IOException {
     DatagramPacket outboundDatagram
         = new DatagramPacket(packet.getData(), packet.getData().length, address, port);
     socket.send(outboundDatagram);
     System.out.println("Sending packet with seq num: " + packet.getSequenceNumber());
+    System.out.println("Sending " + packet.getData().length + " bytes of data");
     timeout.createTimer(packet, new Timer(), socket);
     slidingWindowPackets.add(packet);
-  };
+  }
 
   @Override
   public InterfacePacket receive(DatagramSocket socket) throws IOException {
-    DatagramPacket datagramPacket = new DatagramPacket(new byte[DatagramProperties.DATA_SIZE], DatagramProperties.DATA_SIZE);
+    DatagramPacket datagramPacket = new DatagramPacket(new byte[DatagramProperties.DATA_SIZE],
+        DatagramProperties.DATA_SIZE);
     socket.receive(datagramPacket);
     System.out.println("Received packet with address: " + datagramPacket.getAddress());
     return new InboundPacket(datagramPacket);
   }
 
-  public void verifyAcknowledgement(InterfacePacket ackPacket) {
-    // Check if the sequence number matches one of the send packets
-    InterfacePacket ackedPacket = null;
-    for (InterfacePacket packet : slidingWindowPackets) {
-      if (packet.getSequenceNumber() == ackPacket.getSequenceNumber() && ackPacket.isAcknowledgement()
-          && packet.getRequestType() == ackPacket.getRequestType()) {
-        addAcknowledgedPacket(packet);
-        ackedPacket = packet;
-        System.out.println("Acknowledged packet: " + packet.getSequenceNumber());
-        LAF = packet.getSequenceNumber();
-        break;
-      }
-    }
-    if (ackedPacket != null) {
-      slidingWindowPackets.remove(ackedPacket);
-    }
-  }
-
-  public boolean inSendWindow(int sequenceNumber) {
-    // Check if the sequence number could already have wrapped
-    if (LAF + SWS >= maxSeqNum) {
-      // sequence numbers can wrap back to zero
-      return sequenceNumber < LAF + SWS - maxSeqNum || (sequenceNumber > LAF
-          && sequenceNumber < SWS+LAF);
-    } else {
-      // sequence numbers should be between LAF and SWS
-      return (sequenceNumber >= LAF && sequenceNumber < (LAF + SWS));
-    }
-  }
-
-
   @Override
-  public void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType, ArrayList<byte[]> dataList, String filename) throws IOException {
+  public void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType,
+      ArrayList<byte[]> dataList, String filename) throws IOException {
+    int sequenceNumber = 0;
+    int wrapCounter = 0;
+    int packetCounter = 0;
     LAF = 0;
     LFS = -1;
-    int sequenceNumber = 0;
     boolean first = true;
     boolean last = false;
-    for (byte[] dataPacket : dataList) {
-      if (inSendWindow(sequenceNumber)) {
-        if (Arrays.equals(dataList.get(dataList.size()-1), dataPacket)) {
+    while(!last){
+      byte[] dataPacket = dataList.get(packetCounter);
+      if (inWindow(LAF, SWS, maxSeqNum, sequenceNumber)) {
+        if (Arrays.equals(dataList.get(dataList.size() - 1), dataPacket)) {
           last = true;
         }
         send(socket, address, port, requestType, first, last, false, sequenceNumber, filename,
             dataPacket);
         LFS = sequenceNumber;
-        sequenceNumber++;
+
         first = false;
-        verifyAcknowledgement(receive(socket));
+        while (!(verifyAcknowledgement(receive(socket)))) {
+          System.out.println("Waiting for acknowledgement");
+          // do nothing
+        }
+        sequenceNumber++;
+        packetCounter++;
       } else {
         System.out.println("Packet not in sender window " + LAF + ":" + LFS);
       }
@@ -119,6 +105,7 @@ public class SlidingWindow extends AbstractWindow {
       if (sequenceNumber == Math.pow(2,
           8)) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
         sequenceNumber = 0;
+        wrapCounter++;
       }
     }
   }
@@ -130,4 +117,33 @@ public class SlidingWindow extends AbstractWindow {
     return null;
   }
 
+  @Override
+  public boolean verifyAcknowledgement(InterfacePacket ackPacket) {
+    // Check if the sequence number matches one of the send packets
+    InterfacePacket ackedPacket = null;
+    for (InterfacePacket packet : slidingWindowPackets) {
+      if (packet.getSequenceNumber() == ackPacket.getSequenceNumber()
+          && ackPacket.isAcknowledgement()
+          && packet.getRequestType() == ackPacket.getRequestType()) {
+        addAcknowledgedPacket(packet);
+        ackedPacket = packet;
+        LAF = packet.getSequenceNumber();
+        System.out.println("Received acknowledgement for: " + packet.getRequestType() + " "
+            + packet.getSequenceNumber());
+        break;
+      }
+    }
+    if (ackedPacket != null) {
+      slidingWindowPackets.remove(ackedPacket);
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public boolean verifyNewPacket(DatagramSocket socket, InetAddress address, int port,
+      InterfacePacket packet) throws IOException {
+    System.out.println("VerifyNewPacket method should not be used from the sender class");
+    return false;
+  }
 }

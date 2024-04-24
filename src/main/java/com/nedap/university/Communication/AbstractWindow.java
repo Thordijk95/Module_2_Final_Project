@@ -15,16 +15,11 @@ import java.util.ArrayList;
 import java.util.Timer;
 
 public abstract class AbstractWindow implements Window{
-
-  Util util;
-  Timeout timeout;
   String storageDirectory;
 
   ArrayList<InterfacePacket> acknowledgedPackets;
 
   public AbstractWindow(String directory) {
-    util = new Util();
-    timeout = new Timeout(this);
     acknowledgedPackets = new ArrayList<>();
     storageDirectory = directory;
   }
@@ -56,12 +51,20 @@ public abstract class AbstractWindow implements Window{
     InterfacePacket ackPacket = new AckPacket(packet.getRequestType(), packet.getSequenceNumber());
     DatagramPacket ackDatagramPacket = new DatagramPacket(ackPacket.getData(), ackPacket.getData().length, address, port);
     socket.send(ackDatagramPacket);
-    System.out.println("Acknowledging packet at address: "+ackDatagramPacket.getAddress());
+    System.out.println("Acknowledging packet: " + packet.getRequestType() + " " + packet.getSequenceNumber());
     addAcknowledgedPacket(packet);
   }
 
-  public boolean notYetAcknowledgedPacket(InterfacePacket packet) {
-    return !acknowledgedPackets.contains(packet);
+  public boolean inWindow(int lowerBound, int windowSize, int maxSeqNum, int seqNum) {
+    // Check if the sequence number could already have wrapped
+    if (lowerBound + windowSize >= maxSeqNum) {
+      // sequence numbers can wrap back to zero
+      return seqNum < lowerBound + windowSize - maxSeqNum || (seqNum > lowerBound
+          && seqNum < windowSize + lowerBound);
+    } else {
+      // sequence numbers should be between LAF and SWS
+      return (seqNum >= lowerBound && seqNum < (lowerBound + windowSize));
+    }
   }
 }
 

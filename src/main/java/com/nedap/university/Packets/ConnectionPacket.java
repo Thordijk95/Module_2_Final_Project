@@ -11,7 +11,7 @@ public class ConnectionPacket extends AbstractPacket {
     setFirstPacket(false);
     setLastPacket(false);
     setAcknowledgement(false);
-    setSequenceNumber(0);
+    setSequenceNumber(255);
     setAddress(address);
     setPort(port);
     setFileName("");

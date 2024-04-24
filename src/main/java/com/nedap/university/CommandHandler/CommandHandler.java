@@ -1,6 +1,7 @@
 package com.nedap.university.CommandHandler;
 
 import com.nedap.university.Communication.Requests;
+import com.nedap.university.Packets.InterfacePacket;
 import com.nedap.university.exceptions.IncorrectArgumentException;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -11,7 +12,7 @@ public interface CommandHandler {
 
   void getList(InetAddress hostname, int port) throws IOException;
 
-  void upload(String fileName, byte[] data) throws IOException;
+  void upload(String filePath, InetAddress address, int port) throws IOException;
 
   byte[]  download(String fileName, InetAddress hostname, int port) throws IOException;
 
@@ -19,7 +20,7 @@ public interface CommandHandler {
 
   void rename(String filePath, String newFileName) throws IOException;
 
-  void acknowledge(Requests request, int sequenceNumber, InetAddress hostname, int port) throws IOException;
+  void acknowledge(InterfacePacket packet, InetAddress hostname, int port) throws IOException;
 
   boolean testConnectionAtRunTime(InetAddress hostname, int port) throws IOException, InterruptedException;
 }

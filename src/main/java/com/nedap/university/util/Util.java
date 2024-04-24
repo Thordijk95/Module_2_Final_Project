@@ -49,15 +49,12 @@ public class Util {
       path = Paths.get(System.getProperty("user.home"), "logs", filePath);
     }
     if (Files.exists(path)) {
-     FileOutputStream outputStream = new FileOutputStream(filePath, true);
-     outputStream.write(data);
-     outputStream.close();
-    } else {
-     Files.createFile(path);
-     FileOutputStream outputStream = new FileOutputStream(filePath);
-     outputStream.write(data);
-     outputStream.close();
+     removeFile(filePath);
     }
+    Files.createFile(path);
+    FileOutputStream outputStream = new FileOutputStream(filePath);
+    outputStream.write(data);
+    outputStream.close();
   }
 
   public void removeFile(String filePath) throws IOException {
