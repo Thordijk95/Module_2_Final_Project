@@ -215,10 +215,6 @@ public abstract class AbstractPacket implements InterfacePacket{
       System.out.println("Request not valid: " + requestType.toString());
       return false;
     }
-    if (sequenceNumber < 0 || sequenceNumber > 0xFFFF) {
-      System.out.println("Invalid sequence number: " + sequenceNumber);
-      return false;
-    }
     if (firstPacket && (sequenceNumber != 0 || acknowledgement)) {
       System.out.println("Invalid first packet: " + firstPacket);
       System.out.println("Sequence number: " + sequenceNumber);

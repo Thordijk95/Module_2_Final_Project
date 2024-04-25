@@ -26,5 +26,5 @@ public class DatagramProperties {
   public static int CRC32OFFSET = SEQUENCE_NUMBEROFFSET + SEQUENCE_NUMBER_SIZE;
 
   public static String SEPARATOR = ";";
-  public static long TIMEOUT = 5000; //milli seconds
+  public static long TIMEOUT = 1000; //milli seconds
 }

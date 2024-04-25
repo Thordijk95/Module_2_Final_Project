@@ -21,8 +21,7 @@ public class PiFileServer {
   private List<String> data = new ArrayList<String>();
   private Random random;
 
-  //static String storageDirectory = "/home/pi/PiFileServerStorageDirectory/";
-  static String storageDirectory = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/PiSpoofDir";
+  static String storageDirectory = "/home/pi/PiFileServerStorageDirectory/";
   CommandHandler serverCommandHandler;
   Util util;
 

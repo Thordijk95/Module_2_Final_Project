@@ -20,8 +20,6 @@ public class Timeout {
 
   public void createTimer(InterfacePacket tag, Timer timer, DatagramSocket socket) {
     this.socket = socket;
-    System.out.println("Creating timer for tag: "+ tag);
-    System.out.println("tag address= " + tag.getAddress());
     timer.schedule(new TimerTask() {
       @Override
       public void run() {

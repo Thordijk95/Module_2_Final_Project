@@ -117,9 +117,6 @@ public class SlidingWindow extends AbstractWindow {
         }
       }
       byte[] dataPacket = dataList.get(packetCounter);
-      if (sequenceNumber == 254) {
-        System.out.println("wait!");
-      }
       if (inWindow(LAR, SWS, maxSeqNum, sequenceNumber)) {
         // send the next packet
         if (Arrays.equals(dataList.get(dataList.size() - 1), dataPacket)) {
@@ -132,14 +129,12 @@ public class SlidingWindow extends AbstractWindow {
         sequenceNumber++;
         packetCounter = sequenceNumber + maxSeqNum*wrapCounter;
       } else {
-        System.out.println("Packet not in sender window " + LAR + ":" + LFS);
         System.out.println("Waiting for acknowledgement to continue");
         while (!(verifyAcknowledgement(receive(socket)))) {
           // do nothing
         }
       }
       if (sequenceNumber == maxSeqNum) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
-        System.out.println("Wrap arround");
         sequenceNumber = 0;
         wrapCounter++;
       }
@@ -179,7 +174,6 @@ public class SlidingWindow extends AbstractWindow {
   @Override
   public boolean verifyNewPacket(DatagramSocket socket, InetAddress address, int port,
       InterfacePacket packet) throws IOException {
-    System.out.println("VerifyNewPacket method should not be used from the sender class");
     return false;
   }
 

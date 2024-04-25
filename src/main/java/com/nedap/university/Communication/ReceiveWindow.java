@@ -109,7 +109,6 @@ public class ReceiveWindow extends AbstractWindow {
           updateWindow();
           // Check if any other packets can be acknowledged
           processReceiveWindow(socket, address, port);
-          SEQNUMTOACK++;
           returnValue = true;
         } else if (!receiveWindow.containsKey(packet.getSequenceNumber())){
           System.out.println("Sequence number: " + packet.getSequenceNumber());
@@ -117,9 +116,6 @@ public class ReceiveWindow extends AbstractWindow {
           acknowledgePacket(socket, address, port, packet);
           // Packet not the next to acknowledge, store for later
           receiveWindow.put(packet.getSequenceNumber(), packet);
-        }
-      } else {
-        System.out.println("Dropped the packet 1");
         }  else {
 
         }

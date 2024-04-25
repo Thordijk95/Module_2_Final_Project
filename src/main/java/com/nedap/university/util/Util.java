@@ -37,10 +37,6 @@ public class Util {
   }
 
   public void safeFile(String filePath, byte[] data) throws IOException {
-    String userDirectory = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
-    System.out.println("User directory: " + userDirectory);
-
-    System.out.println(filePath);
     Path path;
     try {
       path = Paths.get(filePath);
@@ -61,14 +57,10 @@ public class Util {
     try {
       path = Paths.get(filePath);
     } catch (InvalidPathException e) {
-      System.out.println("failed to remove the file: " + filePath);
       throw new IOException("failed to remove the file: " + filePath);
     }
     if (Files.exists(path)) {
       Files.delete(path);
-      System.out.println("removed file");
-    } else {
-      System.out.println("failed to remove the file: " + path);
     }
   }
 
