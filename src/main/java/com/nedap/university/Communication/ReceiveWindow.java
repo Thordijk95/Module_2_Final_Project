@@ -102,7 +102,6 @@ public class ReceiveWindow extends AbstractWindow {
 
     if (packet.isValidPacket() && !getAcknowledgedPackets().contains(packet)) {
       if (inWindow(LFR, RWS, maxSeqNum, packet.getSequenceNumber())) {
-        System.out.println("Packet in window");
         if (packet.getSequenceNumber() == SEQNUMTOACK) {
           acknowledgePacket(socket, address, port, packet);
           SEQNUMTOACK++;
@@ -111,13 +110,9 @@ public class ReceiveWindow extends AbstractWindow {
           processReceiveWindow(socket, address, port);
           returnValue = true;
         } else if (!receiveWindow.containsKey(packet.getSequenceNumber())){
-          System.out.println("Sequence number: " + packet.getSequenceNumber());
-          System.out.println("SeqNumToAck: " + SEQNUMTOACK);
           acknowledgePacket(socket, address, port, packet);
           // Packet not the next to acknowledge, store for later
           receiveWindow.put(packet.getSequenceNumber(), packet);
-        }  else {
-
         }
       } else {
         System.out.println("Packet not in window!!!");
@@ -132,8 +127,6 @@ public class ReceiveWindow extends AbstractWindow {
         // Packet not the next to acknowledge, store for later
         receiveWindow.put(packet.getSequenceNumber(), packet);
       }
-    } else {
-      System.out.println("Dropped the packet 1");
     }
     if (SEQNUMTOACK == maxSeqNum) {
       SEQNUMTOACK = 0;
@@ -143,7 +136,6 @@ public class ReceiveWindow extends AbstractWindow {
 
   @Override
   public boolean inWindow(int lowerBound, int windowSize, int maxSeqNum, int seqNum) {
-    System.out.println("Check in window");
     // Check if the sequence number could already have wrapped
     if (lowerBound + windowSize >= maxSeqNum) {
       // sequence numbers can wrap back to zero
@@ -169,8 +161,10 @@ public class ReceiveWindow extends AbstractWindow {
         // found a gap, stop and wait for this packet
         break;
       }
+      if (!acknowledgedPackets.contains(receiveWindow.get(i))) {
+        acknowledgePacket(socket, address, port, receiveWindow.get(i));
+      }
       dataList.add(receiveWindow.get(i).getData());
-      acknowledgePacket(socket, address, port, receiveWindow.get(i));
       SEQNUMTOACK++;
       receiveWindow.remove(i);
     }
