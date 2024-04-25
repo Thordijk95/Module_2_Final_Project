@@ -206,7 +206,6 @@ public abstract class AbstractPacket implements InterfacePacket{
 
   @Override
   public boolean isValidPacket() {
-    System.out.println("validate packet");
     if (crc32 != calculateCRC(getData())) {
       System.out.println("Checksum is invalid!");
       return false;

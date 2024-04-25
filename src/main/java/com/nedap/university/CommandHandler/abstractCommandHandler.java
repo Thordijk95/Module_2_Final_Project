@@ -1,5 +1,7 @@
 package com.nedap.university.CommandHandler;
 
+import static java.lang.reflect.Array.get;
+
 import com.nedap.university.Communication.ReceiveWindow;
 import com.nedap.university.Communication.Requests;
 import com.nedap.university.Communication.Window;
@@ -14,7 +16,12 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.sql.Time;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Timer;
 
 public abstract class abstractCommandHandler implements CommandHandler {
 
@@ -34,7 +41,9 @@ public abstract class abstractCommandHandler implements CommandHandler {
 
   @Override
   public void executeCommand(String[] command, InetAddress address, int port, byte[] data, InterfacePacket packet) throws IncorrectArgumentException, IOException {
+    LocalDateTime startTime = LocalDateTime.now();
     String newFileName = "";
+    int bytes = 0;
     if (!(command[0].toUpperCase().equals(Requests.LIST.toString().toUpperCase())) && command.length == 2) {
       if (!Util.validFileName(command[1])) {
         throw new IncorrectArgumentException("Incorrect arguments: <Command> <filename>\n "
@@ -64,8 +73,8 @@ public abstract class abstractCommandHandler implements CommandHandler {
     if (command[0].toUpperCase().equals(Requests.LIST.name()) || command.length > 1) {
       switch (command[0].toUpperCase()) {
         case "LIST" -> getList(address, port, packet);
-        case "UPLOAD" ->  upload(command[1].toLowerCase(), address, port, packet);
-        case "DOWNLOAD" -> download(command[1].toLowerCase(), address, port, packet);
+        case "UPLOAD" ->  bytes = upload(command[1].toLowerCase(), address, port, packet);
+        case "DOWNLOAD" -> bytes = download(command[1].toLowerCase(), address, port, packet);
         case "REMOVE" -> remove(command[1].toLowerCase(), address, port, packet);
         case "RENAME" -> rename(command[1].toLowerCase(), newFileName.toLowerCase(), address, port, packet);
         case "EMPTY" -> {}
@@ -75,6 +84,15 @@ public abstract class abstractCommandHandler implements CommandHandler {
     } else {
       throw new IncorrectArgumentException("Incorrect arguments: <Command> <filename>\n "
           + "Provided arguments are: " + Arrays.toString(command));
+    }
+    LocalDateTime endTime = LocalDateTime.now();
+    long milliSeconds = Duration.between(startTime, endTime).toMillis();
+    System.out.println("Time required to execute command: " + command[0] + " was " + milliSeconds +" milliseconds!");
+    System.out.println("Total bytes : " + bytes);
+    if (milliSeconds >= 1000) {
+      System.out.println("Speed: " + (bytes/(milliSeconds/1000)) +" Bytes/second");
+    } else {
+      System.out.println("Speed: " + (bytes/(milliSeconds)) +" Bytes/milliSecond");
     }
   }
 

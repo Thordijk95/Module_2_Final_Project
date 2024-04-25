@@ -55,7 +55,7 @@ public class ClientCommandHandler extends abstractCommandHandler{
   }
 
   @Override
-  public void upload(String fileName, InetAddress address, int port, InterfacePacket empty_packet) throws IOException {
+  public int upload(String fileName, InetAddress address, int port, InterfacePacket empty_packet) throws IOException {
     // Send upload request without data to tell server what is going to happen
     InterfacePacket uploadRequestPacket = new OutboundPacket(address, port, Requests.UPLOAD, false,  false, false, 255, fileName, new byte[0]);
     slidingWindow.sendPacket(socket, address, port, uploadRequestPacket);
@@ -69,10 +69,11 @@ public class ClientCommandHandler extends abstractCommandHandler{
     // start the sending segment
     slidingWindow.sender(socket, address, port, Requests.UPLOAD, dataList, fileName);
     System.out.println("upload finished!");
+    return data.length;
   }
 
   @Override
-  public void download(String fileName, InetAddress address, int port, InterfacePacket empty_packet) throws IOException {
+  public int download(String fileName, InetAddress address, int port, InterfacePacket empty_packet) throws IOException {
     System.out.println("Downloading file: " + fileName + " from server");
     // send the download request
     InterfacePacket downloadRequestPacket =
@@ -87,6 +88,7 @@ public class ClientCommandHandler extends abstractCommandHandler{
     byte[] data = receivingWindow.receiver(socket, address, port, Requests.DOWNLOAD);
     util.removeFile(storageDirectory+"/"+fileName);
     util.safeFile(storageDirectory+"/"+fileName, data);
+    return data.length;
   }
 
   @Override

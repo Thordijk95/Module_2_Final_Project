@@ -35,21 +35,23 @@ public class ServerCommandHandler extends abstractCommandHandler{
 
   // A file is uploaded to the serevr
   @Override
-  public void upload(String filePath, InetAddress address, int port, InterfacePacket requestPacket) throws IOException {
+  public int upload(String filePath, InetAddress address, int port, InterfacePacket requestPacket) throws IOException {
     // Acknowledge the request packet
     acknowledge(requestPacket, address, port);
     // Start receiving files to upload
     byte[] data = receivingWindow.receiver(socket, address, port, Requests.UPLOAD);
     util.safeFile(storageDirectory + "/" + filePath, data);
+    return data.length;
   }
 
   // A file is downloaded from the server
   @Override
-  public void download(String fileName, InetAddress address, int port, InterfacePacket requestPacket) throws IOException{
+  public int download(String fileName, InetAddress address, int port, InterfacePacket requestPacket) throws IOException{
     System.out.println("Loading file: " + fileName);
+    byte[] data = new byte[0];
     try {
       // Load the file
-      byte[] data = Util.loadFile(storageDirectory + "/" + fileName);
+      data = Util.loadFile(storageDirectory + "/" + fileName);
       ArrayList<byte[]> dataList = util.splitData(data);
       // Acknowledge the request packet
       acknowledge(requestPacket, address, port);
@@ -61,6 +63,7 @@ public class ServerCommandHandler extends abstractCommandHandler{
       DatagramPacket errorDatagram = new DatagramPacket(errorPacket.getData(), errorPacket.getData().length, address, port);
       socket.send(errorDatagram);
     }
+    return data.length;
   }
 
   @Override

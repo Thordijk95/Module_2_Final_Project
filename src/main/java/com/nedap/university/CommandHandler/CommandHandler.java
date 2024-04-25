@@ -12,9 +12,9 @@ public interface CommandHandler {
 
   void getList(InetAddress hostname, int port, InterfacePacket packet) throws IOException;
 
-  void upload(String filePath, InetAddress address, int port, InterfacePacket packet) throws IOException;
+  int upload(String filePath, InetAddress address, int port, InterfacePacket packet) throws IOException;
 
-  void download(String fileName, InetAddress hostname, int port, InterfacePacket packet) throws IOException;
+  int download(String fileName, InetAddress hostname, int port, InterfacePacket packet) throws IOException;
 
   void remove(String fileName, InetAddress address, int port, InterfacePacket requestPacket) throws IOException;
 

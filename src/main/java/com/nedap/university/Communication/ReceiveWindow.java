@@ -150,7 +150,7 @@ public class ReceiveWindow extends AbstractWindow {
   public void updateWindow() {
     LFR = SEQNUMTOACK;
     LAF = LFR + RWS;
-    if (LAF >= maxSeqNum) {
+    if (LAF > maxSeqNum) {
       LAF = LAF - maxSeqNum;
     }
   }
