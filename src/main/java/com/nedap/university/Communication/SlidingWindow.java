@@ -124,9 +124,6 @@ public class SlidingWindow extends AbstractWindow {
           // do nothing
         }
       }
-      if (sequenceNumber == 127) {
-        System.out.println("break");
-      }
       if (sequenceNumber == maxSeqNum) { // Sequence number field is 8 bit, after number 2^8 wrap back to 0
         System.out.println("Wrap arround");
         sequenceNumber = 0;

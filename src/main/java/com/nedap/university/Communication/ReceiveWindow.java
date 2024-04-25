@@ -114,6 +114,7 @@ public class ReceiveWindow extends AbstractWindow {
         } else if (!receiveWindow.containsKey(packet.getSequenceNumber())){
           System.out.println("Sequence number: " + packet.getSequenceNumber());
           System.out.println("SeqNumToAck: " + SEQNUMTOACK);
+          acknowledgePacket(socket, address, port, packet);
           // Packet not the next to acknowledge, store for later
           receiveWindow.put(packet.getSequenceNumber(), packet);
         }
