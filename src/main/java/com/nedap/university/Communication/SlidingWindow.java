@@ -20,7 +20,7 @@ import java.util.Timer;
 public class SlidingWindow extends AbstractWindow {
 
   final int SWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
-      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) / 2;
+      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) / 4;
 
   int LAR = 0;
   int LFS;
@@ -85,7 +85,6 @@ public class SlidingWindow extends AbstractWindow {
       byte[] dataPacket = dataList.get(packetCounter);
       if (i == dataList.size() - 1) {
         // SWS is larger than total number of packets, everything was send in the burst
-        stop = true;
         last = true;
       }
       send(socket, address, port, requestType, first, last, false, sequenceNumber, filename,
@@ -102,6 +101,21 @@ public class SlidingWindow extends AbstractWindow {
     packetCounter++;
 
     while(!stop){
+      while(last) {
+        System.out.println("last packet has been sent, wait for all the acks or timeouts that trigger acks");
+        stop = true;
+        if (slidingWindowPackets.isEmpty()) {
+          System.out.println("last packet acknowledged");
+          return;
+        }
+        if (slidingWindowPackets.size() == 1) {
+          System.out.println("Last packet needs ack");
+        }
+        while (!(verifyAcknowledgement(receive(socket)))) {
+          System.out.println("Waiting for acknowledgement");
+          // do nothing
+        }
+      }
       byte[] dataPacket = dataList.get(packetCounter);
       if (sequenceNumber == 254) {
         System.out.println("wait!");
@@ -128,20 +142,6 @@ public class SlidingWindow extends AbstractWindow {
         System.out.println("Wrap arround");
         sequenceNumber = 0;
         wrapCounter++;
-      }
-      while(last) {
-        System.out.println("last packet has been sent, wait for all the acks or timeouts that trigger acks");
-        stop = true;
-        if (slidingWindowPackets.isEmpty()) {
-          break;
-        }
-        if (slidingWindowPackets.size() == 1) {
-          System.out.println("Last packet needs ack");
-        }
-        while (!(verifyAcknowledgement(receive(socket)))) {
-          System.out.println("Waiting for acknowledgement");
-          // do nothing
-        }
       }
     }
   }

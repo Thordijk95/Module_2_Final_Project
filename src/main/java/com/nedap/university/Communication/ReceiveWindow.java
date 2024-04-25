@@ -25,8 +25,8 @@ public class ReceiveWindow extends AbstractWindow {
   ArrayList<byte[]> dataList;
 
 
-  int RWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
-      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) / 2;
+  final int RWS = (int) Math.pow((DatagramProperties.SEQUENCE_NUMBER_SIZE * 2),
+      (DatagramProperties.SEQUENCE_NUMBER_SIZE * 8)) / 4;
   int LFR = -1;
   int LAF = LFR + RWS;
 
@@ -68,8 +68,10 @@ public class ReceiveWindow extends AbstractWindow {
   @Override
   public byte[] receiver(DatagramSocket socket, InetAddress address, int port,
       Requests requestsType) throws IOException {
-    ArrayList<byte[]> dataList = new ArrayList<byte[]>();
+    dataList = new ArrayList<>();
     SEQNUMTOACK = 0;
+    LFR = -1;
+    LAF = LFR + RWS;
     // start the receiver
     System.out.println("Starting receiver!!!");
     while (true) {

@@ -58,7 +58,8 @@ public class ServerCommandHandler extends abstractCommandHandler{
     } catch (IOException e) {
       e.printStackTrace();
       InterfacePacket errorPacket = new ErrorPacket("IOException");
-      slidingWindow.sendPacket(socket, address, port, errorPacket);
+      DatagramPacket errorDatagram = new DatagramPacket(errorPacket.getData(), errorPacket.getData().length, address, port);
+      socket.send(errorDatagram);
     }
   }
 
@@ -69,9 +70,9 @@ public class ServerCommandHandler extends abstractCommandHandler{
       // Acknowledge the request packet after succesfully performing the command
       acknowledge(requestPacket, address, port);
     } catch (IOException e) {
-      e.printStackTrace();
       InterfacePacket errorPacket = new ErrorPacket("IOException");
-      slidingWindow.sendPacket(socket, address, port, errorPacket);
+      DatagramPacket errorDatagram = new DatagramPacket(errorPacket.getData(), errorPacket.getData().length, address, port);
+      socket.send(errorDatagram);
       e.printStackTrace();
     }
   }

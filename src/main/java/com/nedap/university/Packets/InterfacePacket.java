@@ -35,6 +35,10 @@ public interface InterfacePacket {
 
   int getSequenceNumber();
 
+  void setCRC32(long crc32);
+
+  long getCRC32();
+
   void setFileName(String fileName);
 
   String getFileName();
@@ -54,4 +58,6 @@ public interface InterfacePacket {
   void parseHeader();
 
   boolean isValidPacket();
+
+  long calculateCRC(byte[] data);
 }

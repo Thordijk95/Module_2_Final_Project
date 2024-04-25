@@ -52,4 +52,14 @@ public class Conversions {
     return allBytes;
   }
 
+  public static long fromByteArrayToLong(byte[] data, int length, int offset) {
+    byte[] tmpData = new byte[length];
+    long result = 0;
+    System.arraycopy(data, offset, tmpData, 0, length);
+    for (int i = 0; i < length; i++) {
+      result = (result << 8) | (tmpData[i] & 0xFF);
+    }
+    return result;
+  }
+
 }

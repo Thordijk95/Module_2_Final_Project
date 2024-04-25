@@ -1,5 +1,6 @@
 package com.nedap.university.Packets;
 
+import static com.nedap.university.util.DatagramProperties.CRC32_SIZE;
 import static com.nedap.university.util.DatagramProperties.HEADER_SIZE;
 
 import com.nedap.university.Communication.Requests;
@@ -8,6 +9,7 @@ import com.nedap.university.util.ChecksumCalculator;
 import com.nedap.university.util.Conversions;
 import com.nedap.university.util.DatagramProperties;
 import java.net.InetAddress;
+import java.util.zip.CRC32;
 
 public abstract class AbstractPacket implements InterfacePacket{
   ChecksumCalculator checksumCalculator = new ChecksumCalculator();
@@ -19,6 +21,7 @@ public abstract class AbstractPacket implements InterfacePacket{
   private boolean lastPacket;
   private boolean acknowledgement;
   private int sequenceNumber;
+  private long crc32;
   private String fileName;
   private String fileType;
 
@@ -74,6 +77,9 @@ public abstract class AbstractPacket implements InterfacePacket{
         (byte) (((firstPacket ? 0x01 : 0x00) << 6) | ((lastPacket ? 0x01 : 0x00) << 5) | ((acknowledgement ? 0x01 : 0x00) << 4) | (requestType.getValue() & 0xFF)); ;
     header[DatagramProperties.SEQUENCE_NUMBEROFFSET] =
         (byte) (sequenceNumber & 0xFF);
+    for (int i = 0; i < CRC32_SIZE; i++) {
+      header[DatagramProperties.CRC32OFFSET+(CRC32_SIZE-1-i)] = (byte) ((crc32 >>> (8*i)) & 0xFF);
+    }
   }
   @Override
   public byte[] getHeader() {
@@ -132,6 +138,16 @@ public abstract class AbstractPacket implements InterfacePacket{
   };
 
   @Override
+  public void setCRC32(long crc32) {
+    this.crc32 = crc32;
+  }
+
+  @Override
+  public long getCRC32() {
+    return crc32;
+  }
+
+  @Override
   public void setFileName(String fileName) {
     this.fileName = fileName;
   };
@@ -181,7 +197,7 @@ public abstract class AbstractPacket implements InterfacePacket{
       lastPacket = (header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x20) != 0;
       acknowledgement = (header[DatagramProperties.FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET] & 0x10) != 0;
       sequenceNumber = (header[DatagramProperties.SEQUENCE_NUMBEROFFSET] & 0xFF);
-      System.out.println("Parsed header, seqnum : " + sequenceNumber);
+      crc32 = Conversions.fromByteArrayToLong(header, CRC32_SIZE, DatagramProperties.CRC32OFFSET);
     } catch (InvalidRequestValue ignored) {
       System.out.println("cannot parse the header!");
       // drop the packet
@@ -191,6 +207,10 @@ public abstract class AbstractPacket implements InterfacePacket{
   @Override
   public boolean isValidPacket() {
     System.out.println("validate packet");
+    if (crc32 != calculateCRC(getData())) {
+      System.out.println("Checksum is invalid!");
+      return false;
+    }
     if (!Requests.validRequest(requestType.toString())) {
       System.out.println("Request not valid: " + requestType.toString());
       return false;
@@ -207,4 +227,11 @@ public abstract class AbstractPacket implements InterfacePacket{
     }
     return true;
   };
+
+  @Override
+  public long calculateCRC(byte[] data) {
+    CRC32 crc32 = new CRC32();
+    crc32.update(data);
+    return crc32.getValue();
+  }
 }

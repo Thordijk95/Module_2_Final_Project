@@ -21,15 +21,14 @@ public class PiFileServer {
   private List<String> data = new ArrayList<String>();
   private Random random;
 
-  static String storageDirectory = "/home/pi/PiFileServerStorageDirectory/";
-  static String localStorageDirectory = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/PiSpoofDir";
+  //static String storageDirectory = "/home/pi/PiFileServerStorageDirectory/";
+  static String storageDirectory = "/home/Thomas.Hordijk/Documents/Nedap/Project_Module_2/my_git/Module_2_Final_Project/example_files/PiSpoofDir";
   CommandHandler serverCommandHandler;
   Util util;
-//
 
   public PiFileServer(int port, int headersize, int datagramsize) throws SocketException {
       socket = new DatagramSocket(port);
-      serverCommandHandler = new ServerCommandHandler(socket, localStorageDirectory);
+      serverCommandHandler = new ServerCommandHandler(socket, storageDirectory);
       util = new Util();
   }
 

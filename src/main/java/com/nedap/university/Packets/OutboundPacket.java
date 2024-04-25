@@ -6,11 +6,13 @@ import com.nedap.university.Communication.Requests;
 import com.nedap.university.util.Util;
 import java.net.InetAddress;
 import java.util.regex.PatternSyntaxException;
+import java.util.zip.CRC32;
 
 public class OutboundPacket extends AbstractPacket{
 
   // Create an outbound packet with header and data to send
   public OutboundPacket(InetAddress address, int port, Requests requestType, boolean firstPacket, boolean last, boolean acknowledgement, int sequenceNumber, String fileName, byte[] data) {
+    setCRC32(calculateCRC(data));
     setRequestType(requestType);
     setFirstPacket(firstPacket);
     setLastPacket(last);

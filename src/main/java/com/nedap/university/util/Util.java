@@ -26,7 +26,6 @@ public class Util {
       dataList.add(tmpData);
       dataPointer += Math.min(data.length-dataPointer, DatagramProperties.DATA_SIZE);
     }
-    System.out.println("I have split the data");
     return dataList;
   }
 
@@ -91,23 +90,6 @@ public class Util {
       case DOWNLOAD, UPLOAD, REMOVE, RENAME -> true;
       default -> false;
     };
-  }
-
-  public byte[] lastPacketInList(byte[] packet, ArrayList<byte[]> packetList ) {
-    if (Arrays.equals(packetList.get(packetList.size() - 1), packet)) {
-      byte[] newPacket = new byte[packet.length+1];
-      byte[] closingByte = new byte[] {0x03};
-      System.arraycopy(packet, 0, newPacket, 0, packet.length);
-      System.arraycopy(closingByte, 0, newPacket, packet.length, 1);
-      packet = newPacket;
-    }
-    return packet;
-  }
-
-  public boolean isLastPacket(byte[] packet) {
-    String data = Conversions.fromByteArrayToString(packet, packet.length, 0);
-    String[] dataStrings = data.split(";", -1);
-    return dataStrings[dataStrings.length-1].equals("");
   }
 
   public static boolean isValidCommand(String command) {

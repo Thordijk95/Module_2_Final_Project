@@ -14,7 +14,8 @@ public class DatagramProperties {
   public static int FILE_TYPE_SIZE = 4;  // 4 bytes are used to encode the file type, extensions longer than 3 characters are not supported
   public static int FIRST_LAST_ACKNOWLEDGMENT_REQUEST = 1; // 1 byte is used to store the acknowledgement and the requesttype of a packet
   public static int SEQUENCE_NUMBER_SIZE = 1;  // 1 byte is used to store the sequence number of a packet, this limits the send window, however, SWS of 127 is sufficient
-  public static int HEADER_SIZE = FILENAME_SIZE + FILE_TYPE_SIZE + FIRST_LAST_ACKNOWLEDGMENT_REQUEST + SEQUENCE_NUMBER_SIZE;
+  public static int CRC32_SIZE = 4;
+  public static int HEADER_SIZE = FILENAME_SIZE + FILE_TYPE_SIZE + FIRST_LAST_ACKNOWLEDGMENT_REQUEST + SEQUENCE_NUMBER_SIZE + CRC32_SIZE;
 
   public static int DATA_SIZE = DATAGRAMSIZE- HEADER_SIZE;
 
@@ -22,6 +23,7 @@ public class DatagramProperties {
   public static int FILETYPEOFFSET = FILENAME_OFFSET + FILENAME_SIZE;
   public static int FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET = FILETYPEOFFSET + FILE_TYPE_SIZE;
   public static int SEQUENCE_NUMBEROFFSET = FIRSTPACKET_LASTPACKET_ACKNOWLEDGMENT_REQUESTOFFSET + FIRST_LAST_ACKNOWLEDGMENT_REQUEST;
+  public static int CRC32OFFSET = SEQUENCE_NUMBEROFFSET + SEQUENCE_NUMBER_SIZE;
 
   public static String SEPARATOR = ";";
   public static long TIMEOUT = 5000; //milli seconds

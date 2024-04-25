@@ -23,7 +23,7 @@ public class TestPacket {
 
   @Test
   public void testPacketCreation() {
-    InterfacePacket outboundPacket = new OutboundPacket(address, port, Requests.UPLOAD, false,
+    InterfacePacket outboundPacket = new OutboundPacket(address, port, Requests.UPLOAD, false, false,
         false, 5, "Tiny.pdf", new byte[] {0x00});
 
     DatagramPacket datagram = new DatagramPacket(outboundPacket.getData(), outboundPacket.getData().length, address, port);

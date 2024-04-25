@@ -23,12 +23,16 @@ public class MyClientTUI {
       try {
         System.out.println(
             "Please provide the address/hostname where to connect to the file server: (default = 172.16.1.1)");
-        String hostname = input.nextLine();
-        hostname = "172.16.1.1";
+        String address = input.nextLine();
+        if (address.isEmpty()) {
+          address = "172.16.1.1";
+        }
         System.out.println("Provide the well known port of the server: (default = 8080)");
         String port = input.nextLine();
-        port = "8080";
-        myClient = new MyClient(new String[] {hostname, port});
+        if (port.isEmpty()) {
+          port = "8080";
+        }
+        myClient = new MyClient(new String[] {address, port});
         help();
         // Start taking in commands from the user and passing them on to the server
         while(true) {
