@@ -98,9 +98,6 @@ public class ReceiveWindow extends AbstractWindow {
   public boolean verifyNewPacket(DatagramSocket socket, InetAddress address, int port,
       InterfacePacket packet) throws IOException {
     // Check if packet is valid and not already acknowledged (e.g. acknowledgement was lost, this is resend)
-    if (SEQNUMTOACK == 254) {
-      System.out.println("WAIT!!");
-    }
     boolean returnValue = false;
 
     if (packet.isValidPacket() && !getAcknowledgedPackets().contains(packet)) {
@@ -108,6 +105,7 @@ public class ReceiveWindow extends AbstractWindow {
         System.out.println("Packet in window");
         if (packet.getSequenceNumber() == SEQNUMTOACK) {
           acknowledgePacket(socket, address, port, packet);
+          SEQNUMTOACK++;
           updateWindow();
           // Check if any other packets can be acknowledged
           processReceiveWindow(socket, address, port);
@@ -122,6 +120,13 @@ public class ReceiveWindow extends AbstractWindow {
         }
       } else {
         System.out.println("Dropped the packet 1");
+        }  else {
+
+        }
+      } else {
+        System.out.println("Packet not in window!!!");
+        System.out.println("Sequence number: " + packet.getSequenceNumber());
+        System.out.println("Current window: " + LFR +":"+ LAF);
       }
     } else if (packet.isValidPacket() && getAcknowledgedPackets().contains(packet)) {
       // Packet has already been processed and acknowledged but acknowledgement was apparently lost
@@ -146,18 +151,18 @@ public class ReceiveWindow extends AbstractWindow {
     // Check if the sequence number could already have wrapped
     if (lowerBound + windowSize >= maxSeqNum) {
       // sequence numbers can wrap back to zero
-      return seqNum < lowerBound + windowSize - maxSeqNum || (seqNum > lowerBound
-          && seqNum < maxSeqNum);
+      return seqNum <= lowerBound + windowSize - maxSeqNum || (seqNum >= lowerBound
+          && seqNum <= maxSeqNum);
     } else {
       // sequence numbers should be between LAF and SWS
-      return (seqNum >= lowerBound && seqNum < (lowerBound + windowSize));
+      return (seqNum >= lowerBound && seqNum <= (lowerBound + windowSize));
     }
   }
 
   public void updateWindow() {
     LFR = SEQNUMTOACK;
     LAF = LFR + RWS;
-    if (LAF > maxSeqNum) {
+    if (LAF >= maxSeqNum) {
       LAF = LAF - maxSeqNum;
     }
   }
@@ -170,7 +175,9 @@ public class ReceiveWindow extends AbstractWindow {
       }
       dataList.add(receiveWindow.get(i).getData());
       acknowledgePacket(socket, address, port, receiveWindow.get(i));
+      SEQNUMTOACK++;
       receiveWindow.remove(i);
     }
+    updateWindow();
   }
 }
