@@ -66,7 +66,7 @@ public class ReceiveWindow extends AbstractWindow {
   }
 
   @Override
-  public byte[] receiver(DatagramSocket socket, InetAddress address, int port,
+  public ArrayList<byte[]> receiver(DatagramSocket socket, InetAddress address, int port,
       Requests requestsType) throws IOException {
     dataList = new ArrayList<>();
     SEQNUMTOACK = 0;
@@ -74,15 +74,17 @@ public class ReceiveWindow extends AbstractWindow {
     LAF = LFR + RWS;
     // start the receiver
     System.out.println("Starting receiver!!!");
+    int totalLength = 0;
     while (true) {
       // receive the next packet
       InterfacePacket downloadPacket = receive(socket);
       if (verifyNewPacket(socket, address, port, downloadPacket)) {
         System.out.println("Received " + downloadPacket.getData().length +" bytes of data");
         byte[] data = downloadPacket.getData();
+        totalLength += data.length;
         dataList.add(data);
         if (downloadPacket.isLastPacket()) {
-          return Conversions.fromDataListToByteArray(dataList);
+          return dataList;
         }
       }
     }

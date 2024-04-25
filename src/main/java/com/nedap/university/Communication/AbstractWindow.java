@@ -37,7 +37,7 @@ public abstract class AbstractWindow implements Window{
 
   public abstract void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType, ArrayList<byte[]> dataList, String filename) throws IOException;
 
-  public abstract byte[] receiver(DatagramSocket socket, InetAddress address, int port, Requests requestsType) throws IOException;
+  public abstract ArrayList<byte[]> receiver(DatagramSocket socket, InetAddress address, int port, Requests requestsType) throws IOException;
 
   public void addAcknowledgedPacket(InterfacePacket packet) {
     acknowledgedPackets.add(packet);

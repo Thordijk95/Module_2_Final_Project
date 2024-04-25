@@ -23,7 +23,7 @@ public interface Window {
   void sender(DatagramSocket socket, InetAddress address, int port, Requests requestType,
       ArrayList<byte[]> dataList, String filename) throws IOException;
 
-  byte[] receiver(DatagramSocket socket, InetAddress address, int port, Requests requestsType)
+  ArrayList<byte[]> receiver(DatagramSocket socket, InetAddress address, int port, Requests requestsType)
       throws IOException;
 
   void addAcknowledgedPacket(InterfacePacket packet);

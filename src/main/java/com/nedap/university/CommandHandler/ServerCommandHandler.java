@@ -39,9 +39,13 @@ public class ServerCommandHandler extends abstractCommandHandler{
     // Acknowledge the request packet
     acknowledge(requestPacket, address, port);
     // Start receiving files to upload
-    byte[] data = receivingWindow.receiver(socket, address, port, Requests.UPLOAD);
-    util.safeFile(storageDirectory + "/" + filePath, data);
-    return data.length;
+    ArrayList<byte[]> data = receivingWindow.receiver(socket, address, port, Requests.UPLOAD);
+    int totalBytes = 0;
+    for (byte[] bytes :data) {
+      util.safeFile(storageDirectory + "/" + filePath, bytes);
+      totalBytes += bytes.length;
+    }
+    return totalBytes;
   }
 
   // A file is downloaded from the server

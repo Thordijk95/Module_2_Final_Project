@@ -142,7 +142,7 @@ public class SlidingWindow extends AbstractWindow {
   }
 
   @Override
-  public byte[] receiver(DatagramSocket socket, InetAddress address, int port,
+  public ArrayList<byte[]> receiver(DatagramSocket socket, InetAddress address, int port,
       Requests requestsType) throws IOException {
     // Should not be used
     return null;

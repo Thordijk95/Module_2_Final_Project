@@ -41,17 +41,6 @@ public class Conversions {
     return builder.toString().getBytes();
   }
 
-  public static byte[] fromDataListToByteArray(ArrayList<byte[]> list) {
-    byte[] allBytes = new byte[0];
-    for (byte[] bytes : list) {
-      byte[] temp = allBytes;
-      allBytes = new byte[bytes.length + allBytes.length];
-      System.arraycopy(temp, 0, allBytes, 0, temp.length);
-      System.arraycopy(bytes, 0, allBytes, temp.length, bytes.length);
-    }
-    return allBytes;
-  }
-
   public static long fromByteArrayToLong(byte[] data, int length, int offset) {
     byte[] tmpData = new byte[length];
     long result = 0;

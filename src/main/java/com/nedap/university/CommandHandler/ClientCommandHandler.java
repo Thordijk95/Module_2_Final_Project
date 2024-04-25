@@ -44,11 +44,11 @@ public class ClientCommandHandler extends abstractCommandHandler{
       System.out.println("Received acknowledgement for list request, waiting for list!");
       receivingWindow.addAcknowledgedPacket(ackPacket);
       // Start receiving the list data
-      byte[] data = receivingWindow.receiver(socket, address, port, Requests.LIST);
-
-      String dataString = Conversions.fromByteArrayToString(data, data.length, 0);
-      System.out.println(dataString);
-
+      ArrayList<byte[]> data = receivingWindow.receiver(socket, address, port, Requests.LIST);
+      for (byte[] bytes : data) {
+        String dataString = Conversions.fromByteArrayToString(bytes, bytes.length, 0);
+        System.out.println(dataString);
+      }
     } else {
       System.out.println("Request was not acknowledged");
     }
@@ -85,10 +85,15 @@ public class ClientCommandHandler extends abstractCommandHandler{
       // Wait for the acknowledgement of the request
     }
     // start the receiver to receive the incoming file
-    byte[] data = receivingWindow.receiver(socket, address, port, Requests.DOWNLOAD);
+    ArrayList<byte[]> data = receivingWindow.receiver(socket, address, port, Requests.DOWNLOAD);
     util.removeFile(storageDirectory+"/"+fileName);
-    util.safeFile(storageDirectory+"/"+fileName, data);
-    return data.length;
+    int totalBytes = 0;
+    for (byte[] bytes : data) {
+      util.safeFile(storageDirectory+"/"+fileName, bytes);
+      totalBytes += bytes.length;
+    }
+
+    return totalBytes;
   }
 
   @Override
