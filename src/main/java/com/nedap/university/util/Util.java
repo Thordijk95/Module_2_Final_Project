@@ -43,11 +43,10 @@ public class Util {
     } catch (InvalidPathException e){
       path = Paths.get(System.getProperty("user.home"), "logs", filePath);
     }
-    if (Files.exists(path)) {
-     removeFile(filePath);
+    if (!Files.exists(path)) {
+      Files.createFile(path);
     }
-    Files.createFile(path);
-    FileOutputStream outputStream = new FileOutputStream(filePath);
+    FileOutputStream outputStream = new FileOutputStream(filePath, true);
     outputStream.write(data);
     outputStream.close();
   }

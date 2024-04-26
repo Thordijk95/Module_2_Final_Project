@@ -41,6 +41,7 @@ public class ServerCommandHandler extends abstractCommandHandler{
     // Start receiving files to upload
     ArrayList<byte[]> data = receivingWindow.receiver(socket, address, port, Requests.UPLOAD);
     int totalBytes = 0;
+    util.removeFile(storageDirectory + "/" + filePath);
     for (byte[] bytes :data) {
       util.safeFile(storageDirectory + "/" + filePath, bytes);
       totalBytes += bytes.length;

@@ -46,7 +46,7 @@ public class MyClientTUI {
             help();
           } else if (Requests.validRequest(args[0].toUpperCase())) {
             try {
-              myClient.clientCommandHandler.executeCommand(args, InetAddress.getByName(address), Integer.parseInt(port), null, null);
+              myClient.clientCommandHandler.executeCommand(args, InetAddress.getLocalHost(), Integer.parseInt(port), null, null);//InetAddress.getByName(address)
             } catch (IncorrectArgumentException e) {
               System.out.println(e.getMessage());
             } catch (IOException e) {
